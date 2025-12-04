@@ -1,39 +1,12 @@
+import Sidebar from "./components/Sidebar";
+
 const Home = () => {
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex">
-      {/* Sidebar */}
-      <div className="w-72 bg-gradient-to-b from-indigo-900 to-purple-900 p-8 shadow-2xl flex flex-col h-screen sticky top-0">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-white mb-2">Components</h2>
-          <div className="h-1 w-12 bg-gradient-to-r from-indigo-400 to-purple-400 rounded"></div>
-        </div>
-
-        <nav className="space-y-3 flex-1">
-          <button className="w-full px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-lg shadow-lg font-semibold transition duration-300 transform hover:scale-105 active:scale-95 text-left pl-4">
-            Row
-          </button>
-          <button className="w-full px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg font-semibold transition duration-300 transform hover:scale-105 active:scale-95 text-left pl-4 border border-white/20">
-            Column
-          </button>
-          <button className="w-full px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg font-semibold transition duration-300 transform hover:scale-105 active:scale-95 text-left pl-4 border border-white/20">
-            Demo Item
-          </button>
-          <button className="w-full px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg font-semibold transition duration-300 transform hover:scale-105 active:scale-95 text-left pl-4 border border-white/20">
-            Image
-          </button>
-          <button className="w-full px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg font-semibold transition duration-300 transform hover:scale-105 active:scale-95 text-left pl-4 border border-white/20">
-            Input
-          </button>
-        </nav>
-
-        <div className="pt-6 border-t border-white/20">
-          <p className="text-white/60 text-xs font-medium">Build your layout</p>
-        </div>
-      </div>
-
+    <div className="w-full h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex overflow-hidden">
+      <Sidebar />
       {/* Main Area */}
-      <div className="flex-1 p-8 overflow-auto">
-        <div className="max-w-6xl mx-auto">
+      <div className="flex-1 p-8 overflow-y-auto overflow-x-hidden flex flex-col">
+        <div className="flex-1">
           {/* Header */}
           <div className="mb-10">
             <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 mb-2">
@@ -115,28 +88,28 @@ const Home = () => {
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Trash Box */}
-          <div className="w-full flex justify-center mt-12">
-            <div className="h-32 w-32 border-3 border-dashed border-red-400 rounded-2xl bg-gradient-to-br from-red-50 to-pink-50 flex flex-col items-center justify-center text-red-700 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition duration-300 cursor-pointer group">
-              <svg
-                className="w-10 h-10 mb-2 group-hover:scale-110 transition"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
-              <span className="text-sm">TRASH</span>
-            </div>
+        {/* Trash Box */}
+        <div className="w-full flex flex-col items-center gap-4 py-8 border-t border-gray-200 bg-white/50 mt-auto">
+          <div className="h-32 w-32 border-3 border-dashed border-red-400 rounded-2xl bg-gradient-to-br from-red-50 to-pink-50 flex flex-col items-center justify-center text-red-700 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition duration-300 cursor-pointer group">
+            <svg
+              className="w-10 h-10 mb-2 group-hover:scale-110 transition"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+            <span className="text-sm">TRASH</span>
           </div>
 
-          <p className="text-center mt-6 text-gray-500 text-sm font-medium">
+          <p className="text-center text-gray-500 text-sm font-medium">
             📋 Sample layout structure — Drag components to organize
           </p>
         </div>
