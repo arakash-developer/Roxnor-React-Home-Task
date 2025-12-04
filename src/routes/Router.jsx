@@ -1,3 +1,4 @@
+import Basics from "@/features/basics/Basics";
 import Home from "@/features/home/Home";
 import NotFound from "@/features/notfound/NotFound";
 import RootLayout from "@/layouts/RootLayout";
@@ -12,7 +13,7 @@ const routes = [
         element: <RootLayout />,
         children: [
           { index: true, element: <Home /> },
-          { path: "register", element: <Home /> },
+          { path: "basics", element: <Basics /> },
         ],
       },
     ],
