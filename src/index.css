@@ -40,3 +40,22 @@
     @apply text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-4;
   }
 }
+
+
+.container {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+}
+.column {
+  width: 45%;
+  padding: 10px;
+  border: 2px solid #ccc;
+  min-height: 200px;
+}
+.item {
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
