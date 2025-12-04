@@ -12,7 +12,7 @@ const Home = () => {
 
           <div className="bg-white rounded-3xl shadow-2xl p-6 border border-slate-200">
             {/* Row 0 */}
-            <div className="border-2 border-indigo-200 rounded-2xl p-8 mb-12 bg-gradient-to-br from-indigo-50 to-purple-50 shadow-lg hover:shadow-xl transition duration-300">
+            <div className="border-2 border-indigo-200 rounded-2xl p-5 mb-8 bg-gradient-to-br from-indigo-50 to-purple-50 shadow-lg hover:shadow-xl transition duration-300">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-1 h-6 bg-gradient-to-b from-indigo-600 to-purple-600 rounded"></div>
                 <p className="text-lg font-bold text-indigo-900">Row 0</p>
@@ -28,7 +28,7 @@ const Home = () => {
             </div>
 
             {/* Row 1 */}
-            <div className="border-2 border-purple-200 rounded-2xl p-8 bg-gradient-to-br from-purple-50 to-pink-50 shadow-lg hover:shadow-xl transition duration-300">
+            <div className="border-2 border-purple-200 rounded-2xl p-5 bg-gradient-to-br from-purple-50 to-pink-50 shadow-lg hover:shadow-xl transition duration-300">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-1 h-6 bg-gradient-to-b from-purple-600 to-pink-600 rounded"></div>
                 <p className="text-lg font-bold text-purple-900">Row 1</p>
