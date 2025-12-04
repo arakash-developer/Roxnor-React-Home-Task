@@ -5,7 +5,9 @@
       "@/*": ["src/*"],
       "@components/*": ["src/components/*"],
       "@layers/*": ["src/components/layers/*"],
-      "@pages/*": ["src/components/pages/*"]
+      "@pages/*": ["src/components/pages/*"],
+      "@layouts/*": ["src/layouts/*"],
+      "@routes/*": ["src/routes/*"]
     }
   }
 }

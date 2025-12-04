@@ -10,6 +10,8 @@ export default defineConfig({
       "@components": path.resolve(__dirname, "./src/components"),
       "@layers": path.resolve(__dirname, "./src/components/layers"),
       "@pages": path.resolve(__dirname, "./src/components/pages"),
+      "@routes": path.resolve(__dirname, "./src/routes"),
+      "@layouts": path.resolve(__dirname, "./src/layouts"),
     },
   },
 });

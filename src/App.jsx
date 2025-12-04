@@ -1,15 +1,23 @@
-import Container from "@layers/Container";
+import { router } from "@/routes/Router";
+// import { QueryClient } from "@tanstack/react-query";
+import { RouterProvider } from "react-router-dom";
 
-const App = () => {
+// const queryClient = new QueryClient();
+
+function App() {
   return (
     <>
-      <Container>
-        <div>
-          <h1 className="text-3xl font-bold underline">Hello, Roxnor!</h1>
-        </div>
-      </Container>
+      {/* <AuthProvider> */}
+      {/* <ToastProvider> */}
+      {/* <QueryClientProvider client={queryClient}> */}
+      <RouterProvider router={router} />
+      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+      {/* <ToastContainer /> */}
+      {/* </QueryClientProvider> */}
+      {/* </ToastProvider> */}
+      {/* </AuthProvider> */}
     </>
   );
-};
+}
 
 export default App;
