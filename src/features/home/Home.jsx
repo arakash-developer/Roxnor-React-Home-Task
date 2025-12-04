@@ -10,7 +10,7 @@ const Home = () => {
         <div className="flex-1">
           <Header />
 
-          <div className="bg-white rounded-3xl shadow-2xl p-10 border border-slate-200">
+          <div className="bg-white rounded-3xl shadow-2xl p-6 border border-slate-200">
             {/* Row 0 */}
             <div className="border-2 border-indigo-200 rounded-2xl p-8 mb-12 bg-gradient-to-br from-indigo-50 to-purple-50 shadow-lg hover:shadow-xl transition duration-300">
               <div className="flex items-center gap-3 mb-6">
