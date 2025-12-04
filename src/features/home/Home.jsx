@@ -1,4 +1,5 @@
-import Sidebar from "./components/Sidebar";
+import Header from "@features/home/components/Header";
+import Sidebar from "@features/home/components/Sidebar";
 
 const Home = () => {
   return (
@@ -7,15 +8,7 @@ const Home = () => {
       {/* Main Area */}
       <div className="flex-1 p-8 overflow-y-auto overflow-x-hidden flex flex-col">
         <div className="flex-1">
-          {/* Header */}
-          <div className="mb-10">
-            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 mb-2">
-              Layout Builder
-            </h1>
-            <p className="text-gray-600 font-medium">
-              Design and organize your components
-            </p>
-          </div>
+          <Header />
 
           <div className="bg-white rounded-3xl shadow-2xl p-10 border border-slate-200">
             {/* Row 0 */}

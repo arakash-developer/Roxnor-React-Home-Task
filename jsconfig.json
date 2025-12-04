@@ -4,10 +4,9 @@
     "paths": {
       "@/*": ["src/*"],
       "@components/*": ["src/components/*"],
-      "@layers/*": ["src/components/layers/*"],
-      "@pages/*": ["src/components/pages/*"],
       "@layouts/*": ["src/layouts/*"],
-      "@routes/*": ["src/routes/*"]
+      "@routes/*": ["src/routes/*"],
+      "@features/*": ["src/features/*"]
     }
   }
 }
