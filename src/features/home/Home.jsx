@@ -1,120 +1,504 @@
-import Header from "@features/home/components/Header";
+import { useState } from "react";
 
-const Home = () => {
-  return (
-    // {/* Main Area */}
-    <div className="flex-1 p-1 xs:p-1.5 sm:p-2 md:p-3 lg:p-5 xl:p-8 overflow-hidden flex flex-col mt-12 md:mt-0">
-      <div className="flex-1 overflow-y-auto">
-        <Header />
-
-        <div className="bg-white rounded-lg xs:rounded-xl sm:rounded-2xl md:rounded-2xl lg:rounded-3xl shadow-md sm:shadow-lg md:shadow-xl lg:shadow-2xl p-1.5 xs:p-2 sm:p-2.5 md:p-4 lg:p-6 border border-slate-200">
-          {/* Row 0 */}
-          <div className="border-2 border-indigo-200 rounded-lg xs:rounded-lg sm:rounded-xl md:rounded-2xl p-1.5 xs:p-2 sm:p-2.5 md:p-3 lg:p-5 mb-1.5 xs:mb-2 sm:mb-2.5 md:mb-3 lg:mb-6 bg-gradient-to-br from-indigo-50 to-purple-50 shadow-sm sm:shadow-md hover:shadow-md sm:hover:shadow-lg transition duration-300">
-            <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 md:gap-2 lg:gap-3 mb-1 xs:mb-1.5 sm:mb-2 md:mb-2.5 lg:mb-4">
-              <div className="w-0.5 h-3 xs:h-3 sm:h-4 md:h-4 lg:h-6 bg-gradient-to-b from-indigo-600 to-purple-600 rounded"></div>
-              <p className="text-xs xs:text-xs sm:text-sm md:text-base lg:text-lg font-bold text-indigo-900">
-                Row 0
-              </p>
-            </div>
-            <div className="border-2 border-indigo-200 rounded-md xs:rounded-lg sm:rounded-lg md:rounded-xl p-1 xs:p-1.5 sm:p-2 md:p-2.5 lg:p-4 bg-white shadow-sm hover:shadow-md transition duration-300 border-l-4 border-l-indigo-600">
-              <p className="text-gray-800 font-semibold text-xs xs:text-xs sm:text-xs md:text-sm lg:text-base">
-                Column 0
-              </p>
-              <p className="text-gray-500 text-xs sm:text-xs md:text-xs lg:text-sm mt-0.5">
-                Primary content area
-              </p>
-            </div>
-          </div>
-
-          {/* Row 1 */}
-          <div className="border-2 border-purple-200 rounded-lg xs:rounded-lg sm:rounded-xl md:rounded-2xl p-1.5 xs:p-2 sm:p-2.5 md:p-3 lg:p-5 bg-gradient-to-br from-purple-50 to-pink-50 shadow-sm sm:shadow-md hover:shadow-md sm:hover:shadow-lg transition duration-300">
-            <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 md:gap-2 lg:gap-3 mb-1 xs:mb-1.5 sm:mb-2 md:mb-2.5 lg:mb-4">
-              <div className="w-0.5 h-3 xs:h-3 sm:h-4 md:h-4 lg:h-6 bg-gradient-to-b from-purple-600 to-pink-600 rounded"></div>
-              <p className="text-xs xs:text-xs sm:text-sm md:text-base lg:text-lg font-bold text-purple-900">
-                Row 1
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 xs:gap-2 sm:gap-2.5 md:gap-3 lg:gap-5 xl:gap-6">
-              {/* Column 0 */}
-              <div className="border-2 border-purple-200 rounded-lg xs:rounded-lg sm:rounded-xl md:rounded-2xl p-1.5 xs:p-2 sm:p-2.5 md:p-3 lg:p-5 shadow-sm hover:shadow-sm sm:hover:shadow-md transition duration-300 bg-white">
-                <div className="flex items-center gap-1 xs:gap-1.5 mb-1 xs:mb-1.5 sm:mb-2 md:mb-2 lg:mb-3">
-                  <div className="w-0.5 h-3 xs:h-3 sm:h-3 md:h-4 lg:h-5 bg-purple-600 rounded"></div>
-                  <p className="text-purple-900 font-bold text-xs xs:text-xs sm:text-xs md:text-sm lg:text-base">
-                    Column 0
-                  </p>
-                </div>
-
-                <div className="space-y-1 xs:space-y-1.5 sm:space-y-1.5 md:space-y-2 lg:space-y-3">
-                  <div className="border-l-3 border-l-indigo-500 border border-indigo-100 rounded-sm xs:rounded-md sm:rounded-md p-1 xs:p-1.5 sm:p-2 md:p-2.5 lg:p-3 bg-gradient-to-br from-indigo-50 to-blue-50 shadow-sm hover:shadow-sm transition duration-300">
-                    <p className="font-semibold text-indigo-900 text-xs xs:text-xs sm:text-xs md:text-sm lg:text-base">
-                      Component 0
-                    </p>
-                    <p className="text-gray-500 text-xs sm:text-xs md:text-xs lg:text-sm mt-0.5">
-                      Input field
-                    </p>
-                  </div>
-
-                  <div className="border-l-3 border-l-purple-500 border border-purple-100 rounded-sm xs:rounded-md sm:rounded-md p-1 xs:p-1.5 sm:p-2 md:p-2.5 lg:p-3 bg-gradient-to-br from-purple-50 to-pink-50 shadow-sm hover:shadow-sm transition duration-300">
-                    <p className="font-semibold text-purple-900 text-xs xs:text-xs sm:text-xs md:text-sm lg:text-base">
-                      Component 1
-                    </p>
-                    <p className="text-gray-500 text-xs sm:text-xs md:text-xs lg:text-sm mt-0.5">
-                      Image display
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Column 1 */}
-              <div className="border-2 border-pink-200 rounded-lg xs:rounded-lg sm:rounded-xl md:rounded-2xl p-1.5 xs:p-2 sm:p-2.5 md:p-3 lg:p-5 shadow-sm hover:shadow-sm sm:hover:shadow-md transition duration-300 bg-white">
-                <div className="flex items-center gap-1 xs:gap-1.5 mb-1 xs:mb-1.5 sm:mb-2 md:mb-2 lg:mb-3">
-                  <div className="w-0.5 h-3 xs:h-3 sm:h-3 md:h-4 lg:h-5 bg-pink-600 rounded"></div>
-                  <p className="text-pink-900 font-bold text-xs xs:text-xs sm:text-xs md:text-sm lg:text-base">
-                    Column 1
-                  </p>
-                </div>
-                <div className="border-l-3 border-l-pink-500 border border-pink-100 rounded-sm xs:rounded-md sm:rounded-md p-1 xs:p-1.5 sm:p-2 md:p-2.5 lg:p-3 bg-gradient-to-br from-pink-50 to-rose-50 shadow-sm hover:shadow-sm transition duration-300">
-                  <p className="font-semibold text-pink-900 text-xs xs:text-xs sm:text-xs md:text-sm lg:text-base">
-                    rWGSOvT1
-                  </p>
-                  <p className="text-gray-500 text-xs sm:text-xs md:text-xs lg:text-sm mt-0.5">
-                    Media block
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+const renderItem = (item) => {
+  switch (item.type) {
+    case "input":
+      return (
+        <input
+          placeholder={item.label || "Input Field"}
+          className="w-full p-2 border rounded"
+          disabled
+        />
+      );
+    case "text":
+      return <p className="text-gray-800">{item.label}</p>;
+    case "image":
+      return (
+        <div className="w-full h-24 bg-gray-200 flex items-center justify-center rounded">
+          {item.label || "Img"}
         </div>
+      );
+    default:
+      return item.id || item;
+  }
+};
+
+const CustomNestedDnD = () => {
+  const [data, setData] = useState({
+    row1: {
+      column1: [
+        { id: "comp1", type: "input", label: "Input Field 1" },
+        { id: "comp2", type: "image", label: "Image 1" },
+      ],
+      column2: [
+        { id: "comp3", type: "input", label: "Input Field 2" },
+        { id: "comp4", type: "image", label: "Image 2" },
+      ],
+    },
+    row2: {
+      column1: [
+        { id: "comp5", type: "input", label: "Input Field 3" },
+        { id: "comp6", type: "image", label: "Image 3" },
+      ],
+    },
+  });
+
+  const [sidebar] = useState({
+    rows: ["newRow"],
+    columns: ["newColumn"],
+    items: [
+      { type: "input", label: "Input Field" },
+      { type: "text", label: "Text" },
+      { type: "image", label: "Image" },
+    ],
+  });
+
+  const [dragInfo, setDragInfo] = useState({
+    type: null,
+    row: null,
+    column: null,
+    item: null,
+  });
+
+  const [counters, setCounters] = useState({
+    rows: 1,
+    columns: 1,
+    items: 6,
+  });
+
+  const [itemDropIndicator, setItemDropIndicator] = useState({
+    show: false,
+    position: "before",
+    itemId: null,
+  });
+
+  const [columnDropIndicator, setColumnDropIndicator] = useState({
+    show: false,
+    position: "before",
+    columnKey: null,
+    rowKey: null,
+  });
+
+  const [rowDropIndicator, setRowDropIndicator] = useState({
+    show: false,
+    position: "before",
+    rowKey: null,
+  });
+
+  // 💡 OPTIMIZATION 3: Single reset function for all state
+  const resetDragState = () => {
+    setDragInfo({ type: null, row: null, column: null, item: null });
+    setItemDropIndicator({ show: false, position: "before", itemId: null });
+    setColumnDropIndicator({ show: false, position: "before", columnKey: null, rowKey: null });
+    setRowDropIndicator({ show: false, position: "before", rowKey: null });
+  };
+
+
+  // --- Drag Start ---
+  const onDragStart = (e, type, row = null, column = null, item = null) => {
+    e.stopPropagation();
+    setDragInfo({ type, row, column, item });
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  // --- Drag Over ---
+  const onDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  // --- Drag Enter for Items (Shows Indicator) ---
+  const onDragEnterItem = (e, item) => {
+    if (dragInfo.type !== "item" && dragInfo.type !== "newItem") return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const position = y < rect.height / 2 ? "before" : "after";
+    setItemDropIndicator({
+      show: true,
+      position,
+      itemId: item.id,
+    });
+  };
+
+  // --- Drag Enter/Leave for Columns/Rows (Unchanged, as they were robust) ---
+  const onDragEnterColumn = (e, rowKey, colKey) => {
+    if (dragInfo.type !== "column") return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const position = x < rect.width / 2 ? "before" : "after";
+
+    setColumnDropIndicator({
+      show: true,
+      position,
+      columnKey: colKey,
+      rowKey: rowKey,
+    });
+  };
+
+  const onDragLeaveColumn = () => {
+    setColumnDropIndicator({
+      show: false,
+      position: "before",
+      columnKey: null,
+      rowKey: null,
+    });
+  };
+
+  const onDragEnterRow = (e, rowKey) => {
+    if (dragInfo.type !== "row") return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const position = y < rect.height / 2 ? "before" : "after";
+
+    setRowDropIndicator({
+      show: true,
+      position,
+      rowKey: rowKey,
+    });
+  };
+
+  const onDragLeaveRow = () => {
+    setRowDropIndicator({ show: false, position: "before", rowKey: null });
+  };
+
+
+  // --- Drop Row from Sidebar ---
+  const onDropRow = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (dragInfo.type !== "newRow") return;
+
+    const newData = JSON.parse(JSON.stringify(data));
+    const newRowKey = `row${Object.keys(data).length + 1}`; // Better key generation
+    if (!newData[newRowKey]) {
+      newData[newRowKey] = { column1: [] };
+    }
+    setData(newData);
+    setCounters((prev) => ({ ...prev, rows: prev.rows + 1 }));
+    resetDragState(); // Use reset function
+  };
+
+  // --- Drop on Row Container (Reorder Rows) ---
+  const onDropOnRow = (e, targetRowKey) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (dragInfo.type === "row" && dragInfo.row) {
+      const newData = JSON.parse(JSON.stringify(data));
+      const entries = Object.entries(newData);
+      const sourceIndex = entries.findIndex(([key]) => key === dragInfo.row);
+      const targetIndex = entries.findIndex(([key]) => key === targetRowKey);
+      
+      let insertIndex = targetIndex;
+      if (rowDropIndicator.show && rowDropIndicator.position === "after") {
+          insertIndex = targetIndex + 1;
+      }
+      
+      if (sourceIndex > -1 && targetIndex > -1) {
+          const isDroppingOnSelf = (insertIndex === sourceIndex) || (insertIndex === sourceIndex + 1);
+          if (!isDroppingOnSelf) {
+            const [sourceRow] = entries.splice(sourceIndex, 1);
+            entries.splice(Math.min(insertIndex, entries.length), 0, sourceRow);
+            setData(Object.fromEntries(entries));
+          }
+      }
+    }
+
+    resetDragState(); // Use reset function
+  };
+
+  // --- Drop Column / Item Logic ---
+  const onDropColumn = (e, targetRowKey, targetColumnKey) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!dragInfo.type) return;
+
+    const newData = JSON.parse(JSON.stringify(data));
+
+    // 1. New Column from Sidebar
+    if (dragInfo.type === "newColumn") {
+      const colName = `${dragInfo.column}_${counters.columns + 1}`;
+      if (newData[targetRowKey] && !newData[targetRowKey][colName]) {
+        newData[targetRowKey][colName] = [];
+      }
+      setData(newData);
+      setCounters((prev) => ({ ...prev, columns: prev.columns + 1 }));
+    }
+
+    // 2. New Item from Sidebar
+    else if (dragInfo.type === "newItem") {
+      if (newData[targetRowKey] && newData[targetRowKey][targetColumnKey]) {
+        const newCounter = counters.items + 1;
+        let baseLabel = dragInfo.item.label;
+        if (baseLabel.includes("Field")) baseLabel = "Input Field";
+        
+        const newItem = {
+          id: `${dragInfo.item.type}_${newCounter}`,
+          type: dragInfo.item.type,
+          label: `${baseLabel} ${newCounter}`, 
+        };
+        
+        const targetItems = newData[targetRowKey][targetColumnKey];
+        
+        if (itemDropIndicator.show && itemDropIndicator.itemId) {
+            const targetIndex = targetItems.findIndex(i => i.id === itemDropIndicator.itemId);
+            const insertIndex = itemDropIndicator.position === "before" ? targetIndex : targetIndex + 1;
+            targetItems.splice(insertIndex, 0, newItem);
+        } else {
+            targetItems.push(newItem);
+        }
+        
+        setCounters((prev) => ({ ...prev, items: newCounter }));
+      }
+    }
+
+    // 3. Reorder / Move Existing Item
+    else if (
+      dragInfo.type === "item" &&
+      dragInfo.row &&
+      dragInfo.column &&
+      dragInfo.item
+    ) {
+      const sourceItems = newData[dragInfo.row][dragInfo.column];
+      const itemIndex = sourceItems.findIndex((i) => i.id === dragInfo.item.id);
+
+      if (itemIndex > -1) {
+        sourceItems.splice(itemIndex, 1);
+        const targetItems = newData[targetRowKey][targetColumnKey];
+
+        if (itemDropIndicator.show && itemDropIndicator.itemId) {
+          const targetIndex = targetItems.findIndex(
+            (i) => i.id === itemDropIndicator.itemId
+          );
+          const insertIndex =
+            itemDropIndicator.position === "before" ? targetIndex : targetIndex + 1;
+          targetItems.splice(insertIndex, 0, dragInfo.item);
+        } else {
+          targetItems.push(dragInfo.item);
+        }
+      }
+    }
+
+    // 4. Move/Reorder Column (💡 OPTIMIZED for stability)
+    else if (dragInfo.type === "column" && dragInfo.row && dragInfo.column) {
+      const columns = newData[dragInfo.row];
+      const entries = Object.entries(columns);
+      const sourceColumnKey = dragInfo.column;
+      const targetColumnKeyToMoveBefore = columnDropIndicator.columnKey;
+
+      if (dragInfo.row === targetRowKey) {
+        // Reordering within the same row
+        if (columnDropIndicator.show && columnDropIndicator.columnKey) {
+          const sourceIndex = entries.findIndex(([key]) => key === sourceColumnKey);
+          const targetIndex = entries.findIndex(([key]) => key === targetColumnKeyToMoveBefore);
+
+          let insertIndex = targetIndex;
+          if (columnDropIndicator.position === "after") {
+              insertIndex = targetIndex + 1;
+          }
+          
+          if (sourceIndex > -1 && targetIndex > -1) {
+              // Prevent dropping onto the same spot
+              const isDroppingOnSelf = (insertIndex === sourceIndex) || (insertIndex === sourceIndex + 1);
+              
+              if (!isDroppingOnSelf) {
+                  const [sourceColumn] = entries.splice(sourceIndex, 1);
+                  // Use Math.min to ensure index is valid after splice
+                  entries.splice(Math.min(insertIndex, entries.length), 0, sourceColumn); 
+                  newData[targetRowKey] = Object.fromEntries(entries);
+              }
+          }
+        }
+      } else {
+        // Moving to a different row (only if dropped on a column area)
+        const columnToMove = newData[dragInfo.row][dragInfo.column];
+        delete newData[dragInfo.row][dragInfo.column];
+        newData[targetRowKey][dragInfo.column] = columnToMove;
+      }
+    }
+
+    setData(newData);
+    resetDragState(); // Use reset function
+  };
+
+  // --- Trash ---
+  const onDropToTrash = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!dragInfo.type) return;
+
+    const newData = JSON.parse(JSON.stringify(data));
+
+    if (dragInfo.type === "row" && dragInfo.row) delete newData[dragInfo.row];
+    if (dragInfo.type === "column" && dragInfo.row && dragInfo.column) {
+      delete newData[dragInfo.row][dragInfo.column];
+    }
+    if (dragInfo.type === "item" && dragInfo.row && dragInfo.column && dragInfo.item) {
+      newData[dragInfo.row][dragInfo.column] = newData[dragInfo.row][
+        dragInfo.column
+      ].filter((i) => i.id !== dragInfo.item.id);
+    }
+
+    setData(newData);
+    resetDragState(); // Use reset function
+  };
+
+
+  return (
+    <div className="flex gap-4 p-4 w-full">
+      {/* Sidebar */}
+      <div className="w-[20%] border p-4 bg-gray-100 rounded h-fit">
+        <h4 className="font-bold mb-2">Rows</h4>
+        {sidebar.rows.map((r) => (
+          <div
+            key={r}
+            draggable
+            onDragStart={(e) => onDragStart(e, "newRow", r)}
+            className="p-2 mb-2 border bg-blue-200 cursor-move rounded hover:bg-blue-300 transition"
+          >
+            {r}
+          </div>
+        ))}
+
+        <h4 className="font-bold mb-2 mt-4">Columns</h4>
+        {sidebar.columns.map((c) => (
+          <div
+            key={c}
+            draggable
+            onDragStart={(e) => onDragStart(e, "newColumn", null, c)}
+            className="p-2 mb-2 border bg-green-200 cursor-move rounded hover:bg-green-300 transition"
+          >
+            {c}
+          </div>
+        ))}
+
+        <h4 className="font-bold mb-2 mt-4">Items</h4>
+        {sidebar.items.map((i, index) => (
+          <div
+            key={index}
+            draggable
+            onDragStart={(e) => onDragStart(e, "newItem", null, null, i)}
+            className="p-2 mb-2 border bg-purple-200 cursor-move rounded hover:bg-purple-300 transition"
+          >
+            {renderItem(i)}
+          </div>
+        ))}
       </div>
 
-      {/* Trash Box */}
-      <div className="w-full flex flex-col items-center gap-1 xs:gap-1 sm:gap-1.5 md:gap-2 lg:gap-3 py-1 xs:py-1 sm:py-1.5 md:py-2 lg:py-3 border-t border-gray-200 bg-white/50 flex-shrink-0">
-        <div className="h-12 w-12 xs:h-14 xs:w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 lg:h-28 lg:w-28 border border-dashed border-red-400 rounded-lg xs:rounded-lg sm:rounded-lg md:rounded-xl lg:rounded-2xl bg-gradient-to-br from-red-50 to-pink-50 flex flex-col items-center justify-center text-red-700 font-bold shadow-md hover:shadow-lg hover:scale-105 transition duration-300 cursor-pointer group">
-          <svg
-            className="w-3 xs:w-3.5 sm:w-4 md:w-6 lg:w-8 h-3 xs:h-3.5 sm:h-4 md:h-6 lg:h-8 mb-0.5 group-hover:scale-110 transition"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-            />
-          </svg>
-          <span className="text-xs xs:text-xs sm:text-xs md:text-xs lg:text-sm">
-            TRASH
-          </span>
-        </div>
+      {/* Main Area */}
+      <div className="w-full" onDragOver={onDragOver} onDrop={onDropRow}>
+        {Object.entries(data).map(([rowKey, columns]) => (
+          <div key={rowKey}>
+             {/* Row Drop Indicator (Before) */}
+             {rowDropIndicator.show &&
+              rowDropIndicator.position === "before" &&
+              rowDropIndicator.rowKey === rowKey && (
+                <div className="h-2 my-2 bg-yellow-500 rounded"></div>
+              )}
 
-        <p className="text-center text-gray-500 text-xs sm:text-xs md:text-sm lg:text-sm font-medium px-1">
-          📋 Layout
-        </p>
+            <div
+              draggable
+              onDragStart={(e) => onDragStart(e, "row", rowKey)}
+              onDragOver={onDragOver}
+              onDragEnter={(e) => onDragEnterRow(e, rowKey)}
+              onDragLeave={onDragLeaveRow}
+              onDrop={(e) => onDropOnRow(e, rowKey)}
+              className="border-2 border-gray-300 p-4 mb-4 bg-gray-50 rounded cursor-move hover:border-yellow-500 transition"
+            >
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="font-bold text-lg">{rowKey}</h3>
+              </div>
+              
+              {/* Columns Container */}
+              <div className="flex gap-4">
+                {Object.entries(columns).map(([colKey, items]) => (
+                  <div key={colKey} className="flex-1 flex">
+                    {/* Column Drop Indicator (Before) */}
+                    {columnDropIndicator.show &&
+                      columnDropIndicator.position === "before" &&
+                      columnDropIndicator.columnKey === colKey &&
+                      columnDropIndicator.rowKey === rowKey && (
+                        <div className="w-2 mx-1 bg-green-500 rounded"></div>
+                      )}
+
+                    <div
+                      draggable
+                      onDragStart={(e) => onDragStart(e, "column", rowKey, colKey)}
+                      onDragOver={onDragOver}
+                      onDragEnter={(e) => onDragEnterColumn(e, rowKey, colKey)}
+                      onDragLeave={onDragLeaveColumn}
+                      onDrop={(e) => onDropColumn(e, rowKey, colKey)}
+                      className="flex-1 border-2 border-dashed border-gray-300 p-4 bg-white rounded min-h-[150px] cursor-move hover:border-blue-500 transition"
+                    >
+                      <h4 className="font-semibold mb-3 pb-2 border-b">{colKey}</h4>
+                      <div className="space-y-2">
+                        {items.map((item) => (
+                          <div key={item.id || item}>
+                            {/* Item Drop Indicator (Before) */}
+                            {itemDropIndicator.show &&
+                              itemDropIndicator.position === "before" &&
+                              itemDropIndicator.itemId === item.id && (
+                                <div className="h-1 bg-blue-500 mb-2 rounded"></div>
+                              )}
+                            <div
+                              draggable
+                              onDragStart={(e) =>
+                                onDragStart(e, "item", rowKey, colKey, item)
+                              }
+                              onDragEnter={(e) => onDragEnterItem(e, item)}
+                              // ❌ OPTIMIZATION 4: Removed onDragLeaveItem
+                              onDragOver={onDragOver}
+                              className="p-3 border border-gray-400 bg-gradient-to-r from-yellow-100 to-yellow-50 rounded cursor-move hover:shadow-md transition"
+                            >
+                              {renderItem(item)}
+                            </div>
+                            {/* Item Drop Indicator (After) */}
+                            {itemDropIndicator.show &&
+                              itemDropIndicator.position === "after" &&
+                              itemDropIndicator.itemId === item.id && (
+                                <div className="h-1 bg-blue-500 mt-2 rounded"></div>
+                              )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Column Drop Indicator (After) */}
+                    {columnDropIndicator.show &&
+                      columnDropIndicator.position === "after" &&
+                      columnDropIndicator.columnKey === colKey &&
+                      columnDropIndicator.rowKey === rowKey &&
+                      Object.keys(columns)[Object.keys(columns).length - 1] === colKey && (
+                        <div className="w-2 mx-1 bg-green-500 rounded"></div>
+                      )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Row Drop Indicator (After) */}
+            {rowDropIndicator.show &&
+              rowDropIndicator.position === "after" &&
+              rowDropIndicator.rowKey === rowKey && (
+                <div className="h-2 my-2 bg-yellow-500 rounded"></div>
+              )}
+          </div>
+        ))}
+
+        {/* Trash */}
+        <div
+          className="w-full flex justify-end mb-4"
+          onDragOver={onDragOver}
+          onDrop={onDropToTrash}
+        >
+          <div className="p-4 w-[200px] border-2 border-red-400 bg-red-100 rounded-lg text-center cursor-pointer hover:bg-red-200 transition">
+            🗑️ <span className="font-bold">Trash</span>
+            <p className="text-sm text-gray-700">Drag here to delete</p>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Home;
+export default CustomNestedDnD;
