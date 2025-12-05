@@ -192,11 +192,14 @@ const CustomNestedDnD = () => {
           if (dragInfo.row === targetRow && dragInfo.column === targetColumn) {
             // Remove item from current position
             sourceItems.splice(itemIndex, 1);
-            
+
             // Find target position based on drop indicator
             const targetItemIndex = sourceItems.indexOf(dropIndicator.item);
             if (targetItemIndex > -1) {
-              const insertIndex = dropIndicator.position === "before" ? targetItemIndex : targetItemIndex + 1;
+              const insertIndex =
+                dropIndicator.position === "before"
+                  ? targetItemIndex
+                  : targetItemIndex + 1;
               sourceItems.splice(insertIndex, 0, dragInfo.item);
             } else {
               // If no target item found, add to end
@@ -230,105 +233,159 @@ const CustomNestedDnD = () => {
     setDragInfo({ type: null, row: null, column: null, item: null });
   };
 
-  return (
-    <div className="flex gap-4 p-4 w-full">
-      {/* Sidebar */}
-      <div className="w-[20%] border p-4 bg-gray-100 rounded h-fit">
-        <h4 className="font-bold mb-2">Rows</h4>
-        {sidebar.rows.map((r) => (
-          <div
-            key={r}
-            draggable
-            onDragStart={(e) => onDragStart(e, "newRow", r)}
-            className="p-2 mb-2 border bg-blue-200 cursor-move rounded hover:bg-blue-300 transition"
-          >
-            {r}
-          </div>
-        ))}
-        <h4 className="font-bold mb-2 mt-4">Columns</h4>
-        {sidebar.columns.map((c) => (
-          <div
-            key={c}
-            draggable
-            onDragStart={(e) => onDragStart(e, "newColumn", null, c)}
-            className="p-2 mb-2 border bg-green-200 cursor-move rounded hover:bg-green-300 transition"
-          >
-            {c}
-          </div>
-        ))}
-        <h4 className="font-bold mb-2 mt-4">Items</h4>
-        {sidebar.items.map((i) => (
-          <div
-            key={i}
-            draggable
-            onDragStart={(e) => onDragStart(e, "newItem", null, null, i)}
-            className="p-2 mb-2 border bg-purple-200 cursor-move rounded hover:bg-purple-300 transition"
-          >
-            {i}
-          </div>
-        ))}
-      </div>
+  // --- Drop to Trash ---
+  const onDropToTrash = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-      {/* Main Container */}
-      <div className="w-full" onDragOver={onDragOver} onDrop={onDropRow}>
-        {Object.entries(data).map(([rowKey, columns]) => (
-          <div
-            key={rowKey}
-            draggable
-            onDragStart={(e) => onDragStart(e, "row", rowKey)}
-            onDragOver={onDragOver}
-            onDrop={(e) => onDropOnRow(e, rowKey)}
-            className="border-2 border-gray-300 p-4 mb-4 bg-gray-50 rounded cursor-move hover:border-yellow-500 transition"
-          >
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="font-bold text-lg">{rowKey}</h3>
+    if (!dragInfo.type) return;
+
+    const newData = JSON.parse(JSON.stringify(data));
+
+    // Delete Row
+    if (dragInfo.type === "row" && dragInfo.row) {
+      delete newData[dragInfo.row];
+    }
+
+    // Delete Column
+    if (dragInfo.type === "column" && dragInfo.row && dragInfo.column) {
+      delete newData[dragInfo.row][dragInfo.column];
+    }
+
+    // Delete Item
+    if (dragInfo.type === "item" && dragInfo.row && dragInfo.column) {
+      newData[dragInfo.row][dragInfo.column] = newData[dragInfo.row][
+        dragInfo.column
+      ].filter((i) => i !== dragInfo.item);
+    }
+
+    setData(newData);
+    setDragInfo({ type: null, row: null, column: null, item: null });
+  };
+
+  return (
+    <>
+      <div className="flex gap-4 p-4 w-full">
+        {/* Sidebar */}
+        <div className="w-[20%] border p-4 bg-gray-100 rounded h-fit">
+          <h4 className="font-bold mb-2">Rows</h4>
+          {sidebar.rows.map((r) => (
+            <div
+              key={r}
+              draggable
+              onDragStart={(e) => onDragStart(e, "newRow", r)}
+              className="p-2 mb-2 border bg-blue-200 cursor-move rounded hover:bg-blue-300 transition"
+            >
+              {r}
             </div>
-            <div className="flex gap-4">
-              {Object.entries(columns).map(([colKey, items]) => (
-                <div
-                  key={colKey}
-                  draggable
-                  onDragStart={(e) => onDragStart(e, "column", rowKey, colKey)}
-                  onDragOver={onDragOver}
-                  onDrop={(e) => onDropColumn(e, rowKey, colKey)}
-                  className="flex-1 border-2 border-dashed border-gray-300 p-4 bg-white rounded min-h-[150px] cursor-move hover:border-blue-500 transition"
-                >
-                  <h4 className="font-semibold mb-3 pb-2 border-b">{colKey}</h4>
-                  <div
-                    className="space-y-2"
-                    onDragOver={onDragOver}
-                    onDrop={(e) => onDropColumn(e, rowKey, colKey)}
-                  >
-                    {items.map((item) => (
-                      <div key={item}>
-                        {dropIndicator.show && dropIndicator.position === "before" && dropIndicator.item === item && (
-                          <div className="h-1 bg-blue-500 mb-2 rounded"></div>
-                        )}
-                        <div
-                          draggable
-                          onDragStart={(e) =>
-                            onDragStart(e, "item", rowKey, colKey, item)
-                          }
-                          onDragEnter={(e) => onDragEnterItem(e, item)}
-                          onDragLeave={onDragLeave}
-                          onDragOver={onDragOver}
-                          className="p-3 border border-gray-400 bg-gradient-to-r from-yellow-100 to-yellow-50 rounded cursor-move hover:shadow-md transition"
-                        >
-                          {item}
-                        </div>
-                        {dropIndicator.show && dropIndicator.position === "after" && dropIndicator.item === item && (
-                          <div className="h-1 bg-blue-500 mt-2 rounded"></div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+          ))}
+          <h4 className="font-bold mb-2 mt-4">Columns</h4>
+          {sidebar.columns.map((c) => (
+            <div
+              key={c}
+              draggable
+              onDragStart={(e) => onDragStart(e, "newColumn", null, c)}
+              className="p-2 mb-2 border bg-green-200 cursor-move rounded hover:bg-green-300 transition"
+            >
+              {c}
+            </div>
+          ))}
+          <h4 className="font-bold mb-2 mt-4">Items</h4>
+          {sidebar.items.map((i) => (
+            <div
+              key={i}
+              draggable
+              onDragStart={(e) => onDragStart(e, "newItem", null, null, i)}
+              className="p-2 mb-2 border bg-purple-200 cursor-move rounded hover:bg-purple-300 transition"
+            >
+              {i}
+            </div>
+          ))}
+        </div>
+
+        <div className="w-full">
+          {/* Main Container */}
+          <div className="w-full" onDragOver={onDragOver} onDrop={onDropRow}>
+            {Object.entries(data).map(([rowKey, columns]) => (
+              <div
+                key={rowKey}
+                draggable
+                onDragStart={(e) => onDragStart(e, "row", rowKey)}
+                onDragOver={onDragOver}
+                onDrop={(e) => onDropOnRow(e, rowKey)}
+                className="border-2 border-gray-300 p-4 mb-4 bg-gray-50 rounded cursor-move hover:border-yellow-500 transition"
+              >
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="font-bold text-lg">{rowKey}</h3>
                 </div>
-              ))}
+                <div className="flex gap-4">
+                  {Object.entries(columns).map(([colKey, items]) => (
+                    <div
+                      key={colKey}
+                      draggable
+                      onDragStart={(e) =>
+                        onDragStart(e, "column", rowKey, colKey)
+                      }
+                      onDragOver={onDragOver}
+                      onDrop={(e) => onDropColumn(e, rowKey, colKey)}
+                      className="flex-1 border-2 border-dashed border-gray-300 p-4 bg-white rounded min-h-[150px] cursor-move hover:border-blue-500 transition"
+                    >
+                      <h4 className="font-semibold mb-3 pb-2 border-b">
+                        {colKey}
+                      </h4>
+                      <div
+                        className="space-y-2"
+                        onDragOver={onDragOver}
+                        onDrop={(e) => onDropColumn(e, rowKey, colKey)}
+                      >
+                        {items.map((item) => (
+                          <div key={item}>
+                            {dropIndicator.show &&
+                              dropIndicator.position === "before" &&
+                              dropIndicator.item === item && (
+                                <div className="h-1 bg-blue-500 mb-2 rounded"></div>
+                              )}
+                            <div
+                              draggable
+                              onDragStart={(e) =>
+                                onDragStart(e, "item", rowKey, colKey, item)
+                              }
+                              onDragEnter={(e) => onDragEnterItem(e, item)}
+                              onDragLeave={onDragLeave}
+                              onDragOver={onDragOver}
+                              className="p-3 border border-gray-400 bg-gradient-to-r from-yellow-100 to-yellow-50 rounded cursor-move hover:shadow-md transition"
+                            >
+                              {item}
+                            </div>
+                            {dropIndicator.show &&
+                              dropIndicator.position === "after" &&
+                              dropIndicator.item === item && (
+                                <div className="h-1 bg-blue-500 mt-2 rounded"></div>
+                              )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Trash Zone */}
+          <div
+            className="w-full flex justify-end mb-4"
+            onDragOver={onDragOver}
+            onDrop={onDropToTrash}
+          >
+            <div className="p-4 w-[200px] border-2 border-red-400 bg-red-100 rounded-lg text-center cursor-pointer hover:bg-red-200 transition">
+              🗑️ <span className="font-bold">Trash</span>
+              <p className="text-sm text-gray-700">Drag here to delete</p>
             </div>
           </div>
-        ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
