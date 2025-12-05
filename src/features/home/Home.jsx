@@ -6,20 +6,15 @@ const renderItem = (item) => {
     case "input":
       return (
         <input
-          // Uses the item's unique 'label' as the placeholder
           placeholder={item.label || "Input Field"}
-          // Slightly increased padding and font size for visibility (px-3 py-1.5)
           className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-blue-500 transition-all bg-white"
           disabled
         />
       );
     case "text":
-      // Uses the item's unique 'label'
       return <p className="text-gray-700 px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-md bg-white">{item.label}</p>;
     case "image":
-      // Uses the item's unique 'label'
       return (
-        // Increased height from h-10 to h-14
         <div className="w-full h-14 bg-blue-50 flex items-center justify-center rounded-md text-xs text-blue-500 font-semibold border border-dashed border-blue-300">
           {item.label || "Image Placeholder"}
         </div>
@@ -29,7 +24,7 @@ const renderItem = (item) => {
   }
 };
 
-// Helper function to generate a unique key for a new row (or column if adapted)
+// Helper function to generate a unique key
 const getNewUniqueKey = (dataObj, prefix = 'entity') => {
     let count = 1;
     let newKey = `${prefix}${count}`;
@@ -41,16 +36,21 @@ const getNewUniqueKey = (dataObj, prefix = 'entity') => {
 };
 
 // *** UNIVERSAL REORDERING HELPER ***
-// Uses the filter-and-splice method for reliable array manipulation and ordering
+// Ensures guaranteed ordering for objects stored as [key, value] arrays (used for Rows and Columns)
 const moveEntry = (entries, sourceKey, insertIndex) => {
-    const sourceEntry = entries.find(([key]) => key === sourceKey);
-    if (!sourceEntry) return entries;
+    const sourceEntryIndex = entries.findIndex(([key]) => key === sourceKey);
+    if (sourceEntryIndex === -1) return entries;
     
-    // 1. Create a new array without the source item
+    // 1. Remove the source entry
+    const sourceEntry = entries[sourceEntryIndex];
     const entriesWithoutSource = entries.filter(([key]) => key !== sourceKey);
     
-    // 2. Splice the source item back in at the desired position
-    const newEntries = [...entriesWithoutSource]; // Clone before splice for immutability
+    // 2. Insert the source entry back at the required index
+    const newEntries = [...entriesWithoutSource];
+    
+    // If the drop target index is after the source's original index, the index
+    // needs to be maintained as the removal shifted the elements. We rely on the
+    // fact that entriesWithoutSource is already 1 element shorter.
     newEntries.splice(insertIndex, 0, sourceEntry);
     
     return newEntries;
@@ -107,7 +107,7 @@ const CustomNestedDnD = () => {
     item: null,
   });
 
-  // Unique index for new content items (Input Field 7, Text Block 8, etc.)
+  // Unique index for new content items 
   const [itemCounter, setItemCounter] = useState(6);
 
   // Indicator States
@@ -186,7 +186,7 @@ const CustomNestedDnD = () => {
       };
   }, [isResizing, doResizing, stopResizing]);
   
-  // --- Drag Operations (Unchanged) ---
+  // --- Drag & Indicator Logic (Unchanged) ---
   const onDragStart = (e, type, row = null, column = null, item = null) => {
     e.stopPropagation();
     setDragInfo({ type, row, column, item });
@@ -198,70 +198,46 @@ const CustomNestedDnD = () => {
     e.dataTransfer.dropEffect = "move";
   };
   
-  // --- Indicator Logic (Unchanged) ---
-  
-  // Handles continuous drag over for items
   const onDragOverItem = useCallback((e, item) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    // Only update indicator if we are dragging an item or a new item
     if ((dragInfo.type !== "item" && dragInfo.type !== "newItem") || dragInfo.item?.id === item.id) return;
-    
     const rect = e.currentTarget.getBoundingClientRect();
     const y = e.clientY - rect.top;
     const position = y < rect.height / 2 ? "before" : "after";
-
-    // Only set state if it actually changes to prevent unnecessary re-renders (flicker)
     setItemDropIndicator(prev => {
-        if (prev.show && prev.itemId === item.id && prev.position === position) {
-            return prev;
-        }
+        if (prev.show && prev.itemId === item.id && prev.position === position) return prev;
         return { show: true, position, itemId: item.id };
     });
   }, [dragInfo]);
 
-  // Handles continuous drag over for columns
   const onDragOverColumn = useCallback((e, rowKey, colKey) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    // Only update indicator if we are dragging a column or a new column
     if (dragInfo.type !== "column" && dragInfo.type !== "newColumn") return;
-    
-    // Skip if we are dragging the column over itself and it's an existing column
     if (dragInfo.type === "column" && dragInfo.column === colKey && dragInfo.row === rowKey) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const position = x < rect.width / 2 ? "before" : "after";
     
-    // Only set state if it actually changes to prevent unnecessary re-renders (flicker)
     setColumnDropIndicator(prev => {
-        if (prev.show && prev.columnKey === colKey && prev.rowKey === rowKey && prev.position === position) {
-            return prev;
-        }
+        if (prev.show && prev.columnKey === colKey && prev.rowKey === rowKey && prev.position === position) return prev;
         return { show: true, position, columnKey: colKey, rowKey: rowKey };
     });
   }, [dragInfo]);
   
-  // Handles continuous drag over for rows
   const onDragOverRow = useCallback((e, rowKey) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    // Only update indicator if we are dragging a row or a new row
     if ((dragInfo.type !== "row" && dragInfo.type !== "newRow") || dragInfo.row === rowKey) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
     const y = e.clientY - rect.top;
     const position = y < rect.height / 2 ? "before" : "after";
     
-    // Only set state if it actually changes to prevent unnecessary re-renders (flicker)
     setRowDropIndicator(prev => {
-        if (prev.show && prev.rowKey === rowKey && prev.position === position) {
-            return prev;
-        }
+        if (prev.show && prev.rowKey === rowKey && prev.position === position) return prev;
         return { show: true, position, rowKey: rowKey };
     });
   }, [dragInfo]);
@@ -269,12 +245,11 @@ const CustomNestedDnD = () => {
 
   // --- Drop Handlers ---
   
-  // Handles drops into the main canvas area, outside any specific row (effectively drops at the end)
+  // Handles drops into the main canvas area
   const onDropRow = (e) => {
     e.preventDefault();
     e.stopPropagation();
     
-    // Only handle newRow drop if it hits the main container (dropped at the end)
     if (dragInfo.type === "newRow") {
         const newRowKey = getNewUniqueKey(data, 'row');
         
@@ -283,7 +258,6 @@ const CustomNestedDnD = () => {
             [newRowKey]: { column1: [] }
         }));
         
-        // Initialize height for the new column
         setColumnHeights(prevHeights => ({
             ...prevHeights,
             [newRowKey]: { column1: MIN_COLUMN_HEIGHT }
@@ -293,37 +267,34 @@ const CustomNestedDnD = () => {
     resetDragState();
   };
 
-  // Handles reordering existing rows AND inserting new rows.
+  // Handles reordering existing rows AND inserting new rows. (IMMUTABLE)
   const onDropOnRow = (e, targetRowKey) => {
     e.preventDefault();
     e.stopPropagation();
 
-    let entries = Object.entries(data);
-    const targetIndex = entries.findIndex(([key]) => key === targetRowKey);
-    
-    let insertIndex = targetIndex;
-    
-    // Use the determined indicator position
-    if (rowDropIndicator.show && rowDropIndicator.position === "after") {
-        insertIndex = targetIndex + 1;
-    }
-
     // 1. Reordering existing rows
     if (dragInfo.type === "row" && dragInfo.row) {
         const sourceRowKey = dragInfo.row;
-        
-        // Explicit Self-Drop Check
         if (sourceRowKey === targetRowKey) {
             resetDragState();
             return;
         }
         
-        const newOrderedDataEntries = moveEntry(entries, sourceRowKey, insertIndex);
-        setData(Object.fromEntries(newOrderedDataEntries));
+        setData(prevData => {
+            let entries = Object.entries(prevData);
+            const targetIndex = entries.findIndex(([key]) => key === targetRowKey);
+            let insertIndex = rowDropIndicator.show && rowDropIndicator.position === "after" ? targetIndex + 1 : targetIndex;
+            
+            const newOrderedDataEntries = moveEntry(entries, sourceRowKey, insertIndex);
+            return Object.fromEntries(newOrderedDataEntries);
+        });
         
-        // 2. Update Heights (Must use the exact same logic structure)
+        // 2. Update Heights
         setColumnHeights(prevHeights => {
             const heightsEntries = Object.entries(prevHeights);
+            const targetIndex = heightsEntries.findIndex(([key]) => key === targetRowKey);
+            let insertIndex = rowDropIndicator.show && rowDropIndicator.position === "after" ? targetIndex + 1 : targetIndex;
+
             const newOrderedHeightsEntries = moveEntry(heightsEntries, sourceRowKey, insertIndex);
             return Object.fromEntries(newOrderedHeightsEntries);
         });
@@ -333,84 +304,120 @@ const CustomNestedDnD = () => {
         const newRowKey = getNewUniqueKey(data, 'row');
         const newRowEntry = [newRowKey, { column1: [] }];
         
-        entries.splice(insertIndex, 0, newRowEntry); 
-        setData(Object.fromEntries(entries));
+        setData(prevData => {
+            let entries = Object.entries(prevData);
+            const targetIndex = entries.findIndex(([key]) => key === targetRowKey);
+            let insertIndex = rowDropIndicator.show && rowDropIndicator.position === "after" ? targetIndex + 1 : targetIndex;
+
+            const newEntries = [...entries];
+            newEntries.splice(insertIndex, 0, newRowEntry); 
+            return Object.fromEntries(newEntries);
+        });
         
         // Insert new height entry
         setColumnHeights(prevHeights => {
             const heightsEntries = Object.entries(prevHeights);
-            heightsEntries.splice(insertIndex, 0, [newRowKey, { column1: MIN_COLUMN_HEIGHT }]);
-            return Object.fromEntries(heightsEntries);
+            const targetIndex = heightsEntries.findIndex(([key]) => key === targetRowKey);
+            let insertIndex = rowDropIndicator.show && rowDropIndicator.position === "after" ? targetIndex + 1 : targetIndex;
+
+            const newHeightsEntries = [...heightsEntries];
+            newHeightsEntries.splice(insertIndex, 0, [newRowKey, { column1: MIN_COLUMN_HEIGHT }]);
+            return Object.fromEntries(newHeightsEntries);
         });
     }
     
     resetDragState();
   };
+  
+  // Functional Helper to update a column's items array inside the nested state (IMMUTABLE)
+  const updateColumnItems = (prevData, rowKey, colKey, updateFn) => {
+    if (!prevData[rowKey] || !prevData[rowKey][colKey]) {
+        return prevData;
+    }
+    
+    const newItems = updateFn([...prevData[rowKey][colKey]]);
+    
+    return {
+        ...prevData,
+        [rowKey]: {
+            ...prevData[rowKey],
+            [colKey]: newItems
+        }
+    };
+  }
 
 
   const onDropColumn = (e, targetRowKey, targetColumnKey) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!dragInfo.type) return;
-
-    const newData = JSON.parse(JSON.stringify(data));
-    const isIndicatorActive = columnDropIndicator.show && columnDropIndicator.rowKey === targetRowKey && columnDropIndicator.columnKey === targetColumnKey;
-
-    // --- 1. New Column from Sidebar ---
-    if (dragInfo.type === "newColumn") {
-      
-      const colName = getNewUniqueKey(newData[targetRowKey] || {}, 'column');
-      const newColumnEntry = [colName, []];
-      
-      let entries = Object.entries(newData[targetRowKey] || {});
-      let insertIndex = entries.length; // Default to appending
-      
-      // Determine insert index based on the active indicator
-      if (isIndicatorActive && targetColumnKey) {
-        const targetIndex = entries.findIndex(([key]) => key === targetColumnKey);
-        
-        if (targetIndex !== -1) {
-            insertIndex = columnDropIndicator.position === "before" ? targetIndex : targetIndex + 1;
-        }
-      }
-      
-      // Insert the new column data
-      entries.splice(insertIndex, 0, newColumnEntry); 
-      newData[targetRowKey] = Object.fromEntries(entries);
-        
-      // Initialize height for the new column, preserving order
-      setColumnHeights(prevHeights => {
-          const newHeights = JSON.parse(JSON.stringify(prevHeights)); 
-          const heightsEntries = Object.entries(newHeights[targetRowKey] || {});
-          
-          heightsEntries.splice(insertIndex, 0, [colName, MIN_COLUMN_HEIGHT]);
-          
-          return {
-              ...newHeights,
-              [targetRowKey]: Object.fromEntries(heightsEntries),
-          };
-      });
+    if (!dragInfo.type) {
+        resetDragState();
+        return;
     }
 
-    // --- 2. New Item from Sidebar (with unique name generation) ---
-    else if (dragInfo.type === "newItem") {
-        // ... (Item drop logic unchanged, as it was already working)
-        if (newData[targetRowKey] && newData[targetRowKey][targetColumnKey]) {
-        
-            const newCounter = itemCounter + 1;
-            setItemCounter(newCounter);
+    const isIndicatorActive = columnDropIndicator.show && columnDropIndicator.rowKey === targetRowKey && columnDropIndicator.columnKey === targetColumnKey;
 
-            let baseLabel = dragInfo.item.label;
-            if (baseLabel.includes("Field")) baseLabel = "Input Field";
+    // --- 1. New Column from Sidebar (IMMUTABLE) ---
+    if (dragInfo.type === "newColumn") {
+      
+        const colName = getNewUniqueKey(data[targetRowKey] || {}, 'column');
+        const newColumnEntry = [colName, []];
+        
+        setData(prevData => {
+            let entries = Object.entries(prevData[targetRowKey] || {});
+            let insertIndex = entries.length; 
             
-            const newItem = {
+            if (isIndicatorActive && targetColumnKey) {
+                const targetIndex = entries.findIndex(([key]) => key === targetColumnKey);
+                if (targetIndex !== -1) {
+                    insertIndex = columnDropIndicator.position === "before" ? targetIndex : targetIndex + 1;
+                }
+            }
+            
+            const newEntries = [...entries];
+            newEntries.splice(insertIndex, 0, newColumnEntry); 
+            
+            return {
+                ...prevData,
+                [targetRowKey]: Object.fromEntries(newEntries)
+            };
+        });
+
+        // Initialize height for the new column, preserving order
+        setColumnHeights(prevHeights => {
+            let heightsEntries = Object.entries(prevHeights[targetRowKey] || {});
+            const targetIndex = heightsEntries.findIndex(([key]) => key === targetColumnKey);
+            let insertIndex = heightsEntries.length;
+            
+            if (isIndicatorActive && targetColumnKey && targetIndex !== -1) {
+                insertIndex = columnDropIndicator.position === "before" ? targetIndex : targetIndex + 1;
+            }
+            
+            const newHeightsEntries = [...heightsEntries];
+            newHeightsEntries.splice(insertIndex, 0, [colName, MIN_COLUMN_HEIGHT]);
+            
+            return {
+                ...prevHeights,
+                [targetRowKey]: Object.fromEntries(newHeightsEntries),
+            };
+        });
+    }
+
+    // --- 2. New Item from Sidebar (IMMUTABLE) ---
+    else if (dragInfo.type === "newItem") {
+        
+        const newCounter = itemCounter + 1;
+        setItemCounter(newCounter);
+
+        let baseLabel = dragInfo.item.label.includes("Field") ? "Input Field" : dragInfo.item.label;
+        
+        const newItem = {
             id: `${dragInfo.item.type}_${newCounter}`,
             type: dragInfo.item.type,
-            label: `${baseLabel} ${newCounter}`, // Set unique label
-            };
-            
-            const targetItems = newData[targetRowKey][targetColumnKey];
-            
+            label: `${baseLabel} ${newCounter}`, 
+        };
+        
+        setData(prevData => updateColumnItems(prevData, targetRowKey, targetColumnKey, (targetItems) => {
             if (itemDropIndicator.show && itemDropIndicator.itemId) {
                 const targetIndex = targetItems.findIndex(i => i.id === itemDropIndicator.itemId);
                 const insertIndex = itemDropIndicator.position === "before" ? targetIndex : targetIndex + 1;
@@ -418,137 +425,215 @@ const CustomNestedDnD = () => {
             } else {
                 targetItems.push(newItem);
             }
-        }
+            return targetItems; 
+        }));
     }
 
-    // --- 3. Reorder / Move Existing Item ---
+    // --- 3. Reorder / Move Existing Item (Cross-Column or Same-Column) (IMMUTABLE) ---
     else if (dragInfo.type === "item" && dragInfo.row && dragInfo.column && dragInfo.item) {
-        // ... (Item drop logic unchanged, as it was already working)
-        const sourceItems = newData[dragInfo.row][dragInfo.column];
-        const itemIndex = sourceItems.findIndex((i) => i.id === dragInfo.item.id);
+        const sourceRowKey = dragInfo.row;
+        const sourceColumnKey = dragInfo.column;
+        const movedItemId = dragInfo.item.id;
 
-        if (itemIndex > -1) {
-            const [movedItem] = sourceItems.splice(itemIndex, 1);
-            const targetItems = newData[targetRowKey][targetColumnKey];
+        setData(prevData => {
+            
+            // 1. Find and retrieve the moved item in a safe way
+            let movedItem = null;
+            let sourceItems = prevData[sourceRowKey]?.[sourceColumnKey] || [];
+            
+            movedItem = sourceItems.find(item => item.id === movedItemId);
 
+            if (!movedItem) return prevData;
+
+            // 2. Construct the new source items array (item filtered out)
+            const newSourceItems = sourceItems.filter(item => item.id !== movedItemId);
+            
+            // 3. Construct the new target items array (item inserted)
+            let newTargetItems = [...(prevData[targetRowKey]?.[targetColumnKey] || [])];
+            
             if (itemDropIndicator.show && itemDropIndicator.itemId) {
-                const targetIndex = targetItems.findIndex((i) => i.id === itemDropIndicator.itemId);
+                const targetIndex = newTargetItems.findIndex((i) => i.id === itemDropIndicator.itemId);
                 const insertIndex = itemDropIndicator.position === "before" ? targetIndex : targetIndex + 1;
-                targetItems.splice(insertIndex, 0, movedItem);
+                newTargetItems.splice(insertIndex, 0, movedItem);
             } else {
-                targetItems.push(movedItem);
+                newTargetItems.push(movedItem);
             }
-        }
+            
+            // 4. Update state immutably for both rows/columns
+            return {
+                ...prevData,
+                [sourceRowKey]: {
+                    ...prevData[sourceRowKey],
+                    [sourceColumnKey]: newSourceItems
+                },
+                [targetRowKey]: {
+                    ...prevData[targetRowKey],
+                    [targetColumnKey]: newTargetItems
+                }
+            };
+        });
     }
 
-    // --- 4. Move/Reorder Existing Column ---
+    // --- 4. Move/Reorder Existing Column (IMMUTABLE) ---
     else if (dragInfo.type === "column" && dragInfo.row && dragInfo.column) {
       const sourceColumnKey = dragInfo.column;
+      const sourceRowKey = dragInfo.row;
 
-      if (dragInfo.row === targetRowKey) {
-        // --- Reordering within the same row (USING moveEntry HELPER) ---
+      if (sourceRowKey === targetRowKey) {
+        // --- Reordering within the same row ---
         
-        const targetColumnKeyToMoveBefore = columnDropIndicator.columnKey;
-
-        // Ensure a target indicator is active 
-        if (isIndicatorActive && targetColumnKeyToMoveBefore) {
+        if (isIndicatorActive && targetColumnKey) {
             
-            // Check for self-drop (dragging column over itself, which is valid if moving 'after')
-            let entries = Object.entries(newData[targetRowKey]);
-            const targetIndex = entries.findIndex(([key]) => key === targetColumnKeyToMoveBefore);
-
-            if (targetIndex > -1) {
-                let insertIndex = targetIndex;
+            // 1. Update Data
+            setData(prevData => {
+                let entries = Object.entries(prevData[targetRowKey]);
+                const targetIndex = entries.findIndex(([key]) => key === targetColumnKey);
                 
-                if (columnDropIndicator.position === "after") {
-                    insertIndex = targetIndex + 1;
-                }
+                let insertIndex = columnDropIndicator.position === "after" ? targetIndex + 1 : targetIndex;
                 
-                // Use the universal helper
                 const newColumnsEntries = moveEntry(entries, sourceColumnKey, insertIndex);
-                newData[targetRowKey] = Object.fromEntries(newColumnsEntries);
+                
+                return {
+                    ...prevData,
+                    [targetRowKey]: Object.fromEntries(newColumnsEntries)
+                };
+            });
 
-                // Synchronize columnHeights state using the exact same logic
-                setColumnHeights(prevHeights => {
-                    const newHeights = JSON.parse(JSON.stringify(prevHeights));
-                    const heightsEntries = Object.entries(newHeights[targetRowKey]);
-                    
-                    const newHeightsEntries = moveEntry(heightsEntries, sourceColumnKey, insertIndex);
-                    newHeights[targetRowKey] = Object.fromEntries(newHeightsEntries);
-                    
-                    return newHeights;
-                });
-            }
+            // 2. Synchronize columnHeights state
+            setColumnHeights(prevHeights => {
+                let heightsEntries = Object.entries(prevHeights[targetRowKey]);
+                const targetIndex = heightsEntries.findIndex(([key]) => key === targetColumnKey);
+                
+                let insertIndex = columnDropIndicator.position === "after" ? targetIndex + 1 : targetIndex;
+                
+                const newHeightsEntries = moveEntry(heightsEntries, sourceColumnKey, insertIndex);
+                
+                return {
+                    ...prevHeights,
+                    [targetRowKey]: Object.fromEntries(newHeightsEntries)
+                };
+            });
         }
       } else {
-        // --- Moving to a different row (Cross-row moves are append only for simplicity) ---
-        const columnToMove = newData[dragInfo.row][dragInfo.column];
-        const heightToMove = columnHeights[dragInfo.row][dragInfo.column];
+        // --- Moving to a different row (Cross-row move) ---
         
-        // Delete data from source
-        delete newData[dragInfo.row][dragInfo.column];
-        
-        // Append data to target
-        newData[targetRowKey] = {
-            ...newData[targetRowKey],
-            [dragInfo.column]: columnToMove 
-        };
-        
-        // Update heights state
-        setColumnHeights(prevHeights => {
-            const newHeights = JSON.parse(JSON.stringify(prevHeights));
-            delete newHeights[dragInfo.row][dragInfo.column];
-            newHeights[targetRowKey] = {
-                ...newHeights[targetRowKey],
-                [dragInfo.column]: heightToMove
+        // 1. Update Data
+        setData(prevData => {
+            const columnToMove = prevData[sourceRowKey][sourceColumnKey];
+            
+            // A. Remove from source row immutably
+            const newSourceColumns = Object.fromEntries(
+                Object.entries(prevData[sourceRowKey]).filter(([key]) => key !== sourceColumnKey)
+            );
+            
+            // B. Add to target row immutably (using insertion logic)
+            let targetEntries = Object.entries(prevData[targetRowKey]);
+            
+            // Determine insertion index based on indicator
+            let insertIndex = targetEntries.length; // Default to append
+            if (isIndicatorActive && targetColumnKey) {
+                const targetIndex = targetEntries.findIndex(([key]) => key === targetColumnKey);
+                if (targetIndex !== -1) {
+                    insertIndex = columnDropIndicator.position === "before" ? targetIndex : targetIndex + 1;
+                }
+            }
+            
+            const newColumnEntry = [sourceColumnKey, columnToMove];
+            let newTargetEntries = [...targetEntries];
+            newTargetEntries.splice(insertIndex, 0, newColumnEntry);
+            
+            const newTargetColumns = Object.fromEntries(newTargetEntries);
+
+            return {
+                ...prevData,
+                [sourceRowKey]: newSourceColumns,
+                [targetRowKey]: newTargetColumns
             };
-            return newHeights;
+        });
+        
+        // 2. Update Heights state (must mirror data logic)
+        setColumnHeights(prevHeights => {
+            const heightToMove = prevHeights[sourceRowKey][sourceColumnKey];
+            
+            // A. Remove from source height immutably
+            const newSourceHeights = Object.fromEntries(
+                Object.entries(prevHeights[sourceRowKey]).filter(([key]) => key !== sourceColumnKey)
+            );
+            
+            // B. Add to target height immutably (using insertion logic)
+            let targetHeightEntries = Object.entries(prevHeights[targetRowKey]);
+            
+            // Determine insertion index based on indicator (same index as data)
+            let insertIndex = targetHeightEntries.length; 
+            if (isIndicatorActive && targetColumnKey) {
+                const targetIndex = targetHeightEntries.findIndex(([key]) => key === targetColumnKey);
+                if (targetIndex !== -1) {
+                    insertIndex = columnDropIndicator.position === "before" ? targetIndex : targetIndex + 1;
+                }
+            }
+            
+            const newHeightEntry = [sourceColumnKey, heightToMove];
+            let newTargetHeightEntries = [...targetHeightEntries];
+            newTargetHeightEntries.splice(insertIndex, 0, newHeightEntry);
+            
+            const newTargetHeights = Object.fromEntries(newTargetHeightEntries);
+            
+            return {
+                ...prevHeights,
+                [sourceRowKey]: newSourceHeights,
+                [targetRowKey]: newTargetHeights
+            };
         });
       }
     }
 
-    setData(newData);
     resetDragState();
   };
 
-  // --- Trash Handler (Unchanged) ---
+  // --- Trash Handler (IMMUTABLE DELETION) ---
   const onDropToTrash = (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (!dragInfo.type) return;
 
-    const newData = JSON.parse(JSON.stringify(data));
-
     if (dragInfo.type === "row" && dragInfo.row) {
-        delete newData[dragInfo.row];
-        setColumnHeights(prev => {
-            const newHeights = { ...prev };
-            delete newHeights[dragInfo.row];
-            return newHeights;
+        setData(prev => { const next = { ...prev }; delete next[dragInfo.row]; return next; });
+        setColumnHeights(prev => { const next = { ...prev }; delete next[dragInfo.row]; return next; });
+    }
+    
+    if (dragInfo.type === "column" && dragInfo.row && dragInfo.column) {
+        const rowKey = dragInfo.row;
+        const colKey = dragInfo.column;
+
+        setData(prev => { 
+            const newRow = Object.fromEntries(
+                Object.entries(prev[rowKey]).filter(([key]) => key !== colKey)
+            );
+            // Delete row if empty, otherwise update
+            return Object.keys(newRow).length === 0 ? { ...prev, [rowKey]: {} } : { ...prev, [rowKey]: newRow };
+        });
+        
+        setColumnHeights(prev => { 
+            const newRowHeights = Object.fromEntries(
+                Object.entries(prev[rowKey]).filter(([key]) => key !== colKey)
+            );
+            return Object.keys(newRowHeights).length === 0 ? { ...prev, [rowKey]: {} } : { ...prev, [rowKey]: newRowHeights };
         });
     }
-    if (dragInfo.type === "column" && dragInfo.row && dragInfo.column) {
-      delete newData[dragInfo.row][dragInfo.column];
-      setColumnHeights(prev => {
-        const newHeights = JSON.parse(JSON.stringify(prev));
-        delete newHeights[dragInfo.row][dragInfo.column];
-        return newHeights;
-      });
-    }
+    
     if (dragInfo.type === "item" && dragInfo.row && dragInfo.column && dragInfo.item) {
-      newData[dragInfo.row][dragInfo.column] = newData[dragInfo.row][
-        dragInfo.column
-      ].filter((i) => i.id !== dragInfo.item.id);
+        setData(prev => updateColumnItems(prev, dragInfo.row, dragInfo.column, (items) => {
+            return items.filter((i) => i.id !== dragInfo.item.id);
+        }));
     }
 
-    setData(newData);
     resetDragState();
   };
 
 
   return (
-    <div className="flex gap-4 p-4 min-h-screen bg-gray-50 font-sans w-full">
-      {/* Sidebar - Slight increase in padding and margin */}
+    <div className="flex gap-4 p-4 min-h-screen w-full bg-gray-50 font-sans">
+      {/* Sidebar */}
       <div className="w-[220px] border border-gray-300 p-3 bg-white shadow-xl rounded-lg h-fit sticky top-4">
         <h3 className="font-extrabold text-base mb-4 text-blue-700 border-b border-blue-200 pb-2">Components</h3>
         
@@ -559,9 +644,7 @@ const CustomNestedDnD = () => {
             key={r}
             draggable
             onDragStart={(e) => onDragStart(e, "newRow", r)}
-            // Increased padding p-3 and mb-2
-            className="p-3 mb-2 border border-blue-500 bg-blue-100 cursor-grab rounded-lg shadow-md
-                       hover:bg-blue-200 transition-all text-sm font-semibold text-blue-800 flex items-center gap-2"
+            className="p-3 mb-2 border border-blue-500 bg-blue-100 cursor-grab rounded-lg shadow-md hover:bg-blue-200 transition-all text-sm font-semibold text-blue-800 flex items-center gap-2"
           >
             <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
             New Row
@@ -575,9 +658,7 @@ const CustomNestedDnD = () => {
             key={c}
             draggable
             onDragStart={(e) => onDragStart(e, "newColumn", null, c)}
-            // Increased padding p-3 and mb-2
-            className="p-3 mb-2 border border-green-500 bg-green-100 cursor-grab rounded-lg shadow-md
-                       hover:bg-green-200 transition-all text-sm font-semibold text-green-800 flex items-center gap-2"
+            className="p-3 mb-2 border border-green-500 bg-green-100 cursor-grab rounded-lg shadow-md hover:bg-green-200 transition-all text-sm font-semibold text-green-800 flex items-center gap-2"
           >
             <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
             New Column
@@ -591,7 +672,6 @@ const CustomNestedDnD = () => {
             key={index}
             draggable
             onDragStart={(e) => onDragStart(e, "newItem", null, null, i)}
-            // Increased padding p-3 and mb-2
             className="p-3 mb-2 border border-purple-500 bg-purple-100 cursor-grab rounded-lg shadow-md hover:bg-purple-200 transition-all"
           >
             {renderItem(i)}
@@ -606,7 +686,7 @@ const CustomNestedDnD = () => {
 
           {Object.entries(data).map(([rowKey, columns]) => (
             <div key={rowKey}>
-              {/* Row Drop Indicator (Before) - Increased height h-3 */}
+              {/* Row Drop Indicator (Before) */}
               {rowDropIndicator.show &&
                 rowDropIndicator.position === "before" &&
                 rowDropIndicator.rowKey === rowKey && (
@@ -616,14 +696,13 @@ const CustomNestedDnD = () => {
               <div
                 onDragOver={(e) => onDragOverRow(e, rowKey)}
                 onDrop={(e) => onDropOnRow(e, rowKey)}
-                // Increased row padding p-4 and mb-4
                 className={`border border-gray-300 p-4 mb-4 bg-gray-50 rounded-xl transition-all shadow-md
                   ${dragInfo.type === 'row' && dragInfo.row === rowKey ? 'ring-2 ring-blue-300 shadow-lg' : 'hover:border-blue-400'}`}
               >
                 <div className="flex justify-between items-center mb-3 border-b border-gray-300 pb-2">
                   <h3 className="font-semibold text-base text-gray-700">{rowKey}</h3>
                   
-                  {/* Explicit Row Drag Handle - Increased size/padding p-2 */}
+                  {/* Row Drag Handle */}
                   <button
                     draggable
                     onDragStart={(e) => onDragStart(e, "row", rowKey)}
@@ -634,10 +713,10 @@ const CustomNestedDnD = () => {
                 </div>
                 
                 {/* Columns Container */}
-                <div className="flex gap-3 items-stretch"> {/* added items-stretch for column resizing to work visually */}
+                <div className="flex gap-3 items-stretch">
                   {Object.entries(columns).map(([colKey, items]) => (
                     <div key={colKey} className="flex-1 flex">
-                      {/* Column Drop Indicator (Before) - Increased width w-3 */}
+                      {/* Column Drop Indicator (Before) */}
                       {columnDropIndicator.show &&
                         columnDropIndicator.position === "before" &&
                         columnDropIndicator.columnKey === colKey &&
@@ -648,7 +727,6 @@ const CustomNestedDnD = () => {
                       <div
                         onDragOver={(e) => onDragOverColumn(e, rowKey, colKey)}
                         onDrop={(e) => onDropColumn(e, rowKey, colKey)}
-                        // Column styles
                         className={`flex-1 border-2 border-dashed p-3 bg-white rounded-lg transition relative flex flex-col
                           ${(dragInfo.type === 'column' || dragInfo.type === 'newColumn') && columnDropIndicator.columnKey === colKey
                             ? 'border-green-600 ring-2 ring-green-300 shadow-inner' 
@@ -658,7 +736,7 @@ const CustomNestedDnD = () => {
                         <div className="flex justify-between items-center mb-3 pb-1 border-b border-gray-200 flex-shrink-0">
                             <h4 className="font-medium text-sm text-gray-600">{colKey}</h4>
                             
-                            {/* Explicit Column Drag Handle - Increased size/padding p-1 */}
+                            {/* Column Drag Handle */}
                             <button
                                 draggable
                                 onDragStart={(e) => onDragStart(e, "column", rowKey, colKey)}
@@ -668,11 +746,11 @@ const CustomNestedDnD = () => {
                             </button>
                         </div>
                         
-                        {/* Items Container - Allows scrolling if content exceeds height */}
+                        {/* Items Container */}
                         <div className="space-y-3 overflow-y-auto flex-grow pr-1"> 
                           {items.map((item) => (
                             <div key={item.id || item}>
-                              {/* Item Drop Indicator (Before) - Increased height h-1.5 */}
+                              {/* Item Drop Indicator (Before) */}
                               {itemDropIndicator.show &&
                                 itemDropIndicator.position === "before" &&
                                 itemDropIndicator.itemId === item.id && (
@@ -680,14 +758,13 @@ const CustomNestedDnD = () => {
                                 )}
                               <div
                                 onDragOver={(e) => onDragOverItem(e, item, rowKey, colKey)}
-                                // Increased item padding p-2 and slightly wider gap
                                 className={`p-2 border border-gray-400 bg-white rounded-md transition-all shadow-sm flex items-start gap-2
                                     hover:shadow-md duration-100 ease-out
                                     ${(dragInfo.type === 'item' || dragInfo.type === 'newItem') && itemDropIndicator.itemId === item.id
                                         ? 'ring-2 ring-purple-500' 
                                         : ''}`}
                               >
-                                {/* Explicit Item Drag Handle - Increased size/padding p-1 w-4 h-4 */}
+                                {/* Item Drag Handle */}
                                 <button
                                     draggable
                                     onDragStart={(e) => onDragStart(e, "item", rowKey, colKey, item)}
@@ -699,7 +776,7 @@ const CustomNestedDnD = () => {
                                     {renderItem(item)}
                                 </div>
                               </div>
-                              {/* Item Drop Indicator (After) - Increased height h-1.5 */}
+                              {/* Item Drop Indicator (After) */}
                               {itemDropIndicator.show &&
                                 itemDropIndicator.position === "after" &&
                                 itemDropIndicator.itemId === item.id && (
@@ -709,11 +786,10 @@ const CustomNestedDnD = () => {
                           ))}
                         </div>
                         
-                        {/* Vertical Resize Handle (Updated: Minimal and smooth) */}
+                        {/* Vertical Resize Handle */}
                         <div
                             onMouseDown={(e) => startResizing(e, rowKey, colKey)}
                             title="Resize Column Vertically"
-                            // Base style: h-0.5 (2px). Hover style: h-1 (4px).
                             className={`absolute bottom-0 left-0 right-0 h-0.5 bg-gray-300 border-t border-gray-200 
                                         hover:h-1 hover:bg-blue-500 cursor-ns-resize rounded-b-lg transition-all 
                                         duration-150 ease-in-out ${isResizing ? 'bg-blue-600 h-1 shadow-md' : 'shadow-sm'}`}
@@ -721,7 +797,7 @@ const CustomNestedDnD = () => {
                         </div>
                       </div>
                       
-                      {/* Column Drop Indicator (After) - Increased width w-3 */}
+                      {/* Column Drop Indicator (After) */}
                       {columnDropIndicator.show &&
                         columnDropIndicator.position === "after" &&
                         columnDropIndicator.columnKey === colKey &&
@@ -733,7 +809,7 @@ const CustomNestedDnD = () => {
                 </div>
               </div>
 
-              {/* Row Drop Indicator (After) - Increased height h-3 */}
+              {/* Row Drop Indicator (After) */}
               {rowDropIndicator.show &&
                 rowDropIndicator.position === "after" &&
                 rowDropIndicator.rowKey === rowKey && (
@@ -742,11 +818,10 @@ const CustomNestedDnD = () => {
             </div>
           ))}
 
-          {/* New Container for JSON and Trash - Side by Side (flex) */}
-          {/* Increased gap and padding in this section */}
+          {/* JSON and Trash */}
           <div className="flex gap-5 mt-5 pt-5 border-t border-gray-200">
             
-            {/* 1. Live Data Display (JSON) - LEFT SIDE (2/3 width) */}
+            {/* 1. Live Data Display (JSON) */}
             <div className="w-2/3 p-4 bg-blue-50 rounded-lg shadow-inner border border-blue-300">
               <h3 className="text-sm font-bold mb-3 text-blue-700 border-b border-blue-200 pb-1.5">Live Data State (JSON)</h3>
               <pre className="text-xs text-gray-800 overflow-x-auto p-3 bg-white rounded-md border border-gray-200 shadow-sm max-h-56">
@@ -754,7 +829,7 @@ const CustomNestedDnD = () => {
               </pre>
             </div>
             
-            {/* 2. Trash Area - RIGHT SIDE (1/3 width) */}
+            {/* 2. Trash Area */}
             <div
               className="w-1/3 flex items-center justify-center p-4 border-2 border-red-500 border-dashed bg-red-100 rounded-lg text-center cursor-pointer hover:bg-red-200 transition shadow-md hover:shadow-lg"
               onDragOver={onDragOver}
