@@ -29,13 +29,13 @@ const renderItem = (item) => {
   }
 };
 
-// Helper function to generate a unique key for a new row
-const getNewRowKey = (data) => {
-    let count = Object.keys(data).length + 1;
-    let newKey = `row${count}`;
-    while (data.hasOwnProperty(newKey)) {
+// Helper function to generate a unique key for a new row (or column if adapted)
+const getNewUniqueKey = (dataObj, prefix = 'entity') => {
+    let count = 1;
+    let newKey = `${prefix}${count}`;
+    while (dataObj.hasOwnProperty(newKey)) {
         count++;
-        newKey = `row${count}`;
+        newKey = `${prefix}${count}`;
     }
     return newKey;
 };
@@ -72,6 +72,7 @@ const CustomNestedDnD = () => {
   // State to track resizing globally
   const [isResizing, setIsResizing] = useState(false);
   const [resizeTarget, setResizeTarget] = useState({ rowKey: null, colKey: null, startY: 0, startHeight: 0 });
+  const [resizeRef, setResizeRef] = useState(null); 
 
   const [sidebar] = useState({
     rows: ["newRow"],
@@ -90,18 +91,15 @@ const CustomNestedDnD = () => {
     item: null,
   });
 
-  const [counters, setCounters] = useState({
-    rows: 2, 
-    columns: 2, 
-    items: 6, // Tracks unique index for new items
-  });
+  // Unique index for new content items (Input Field 7, Text Block 8, etc.)
+  const [itemCounter, setItemCounter] = useState(6);
 
   // Indicator States
   const [itemDropIndicator, setItemDropIndicator] = useState({ show: false, position: "before", itemId: null });
   const [columnDropIndicator, setColumnDropIndicator] = useState({ show: false, position: "before", columnKey: null, rowKey: null });
   const [rowDropIndicator, setRowDropIndicator] = useState({ show: false, position: "before", rowKey: null });
 
-  // 💡 OPTIMIZATION: Single reset function for all drag/indicator state
+  // Reset function for all drag/indicator state
   const resetDragState = useCallback(() => {
     setDragInfo({ type: null, row: null, column: null, item: null });
     setItemDropIndicator({ show: false, position: "before", itemId: null });
@@ -109,12 +107,13 @@ const CustomNestedDnD = () => {
     setRowDropIndicator({ show: false, position: "before", rowKey: null });
   }, []);
 
-  // --- Resize Logic ---
+  // --- Resize Logic (Unchanged) ---
   const startResizing = useCallback((e, rowKey, colKey) => {
       e.stopPropagation();
-      setIsResizing(true);
-      
       const columnElement = e.currentTarget.parentNode;
+      setResizeRef(columnElement); 
+      
+      setIsResizing(true);
       setResizeTarget({
           rowKey,
           colKey,
@@ -124,31 +123,39 @@ const CustomNestedDnD = () => {
   }, []);
 
   const doResizing = useCallback((e) => {
-      if (!isResizing || !resizeTarget.rowKey) return;
+      if (!isResizing || !resizeTarget.rowKey || !resizeRef) return;
       
       const deltaY = e.clientY - resizeTarget.startY;
       let newHeight = resizeTarget.startHeight + deltaY;
       
-      // Enforce minimum height
       newHeight = Math.max(newHeight, MIN_COLUMN_HEIGHT);
       
-      setColumnHeights(prevHeights => ({
-          ...prevHeights,
-          [resizeTarget.rowKey]: {
-              ...prevHeights[resizeTarget.rowKey],
-              [resizeTarget.colKey]: newHeight,
-          }
-      }));
-  }, [isResizing, resizeTarget]);
+      // Update height directly on the DOM element for smooth resizing
+      resizeRef.style.height = `${newHeight}px`;
+
+  }, [isResizing, resizeTarget, resizeRef]);
 
   const stopResizing = useCallback(() => {
-      if (isResizing) {
+      if (isResizing && resizeRef) {
+          
+          const finalHeight = resizeRef.offsetHeight;
+          
+          // Update React state ONCE with the final height
+          setColumnHeights(prevHeights => ({
+              ...prevHeights,
+              [resizeTarget.rowKey]: {
+                  ...prevHeights[resizeTarget.rowKey],
+                  [resizeTarget.colKey]: finalHeight,
+              }
+          }));
+
+          // Cleanup
           setIsResizing(false);
           setResizeTarget({ rowKey: null, colKey: null, startY: 0, startHeight: 0 });
+          setResizeRef(null);
       }
-  }, [isResizing]);
+  }, [isResizing, resizeRef, resizeTarget.rowKey, resizeTarget.colKey]);
 
-  // Attach global mouse listeners for resizing
   useEffect(() => {
       if (isResizing) {
           document.addEventListener('mousemove', doResizing);
@@ -163,7 +170,7 @@ const CustomNestedDnD = () => {
       };
   }, [isResizing, doResizing, stopResizing]);
   
-  // --- Drag Operations ---
+  // --- Drag Operations (Unchanged) ---
   const onDragStart = (e, type, row = null, column = null, item = null) => {
     e.stopPropagation();
     setDragInfo({ type, row, column, item });
@@ -174,31 +181,61 @@ const CustomNestedDnD = () => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
   };
-
-  // --- Drag Enter for Indicators (Sets Indicator State) ---
-  const onDragEnterItem = (e, item) => {
-    // Only show indicator if a component is being dragged AND it is not the item currently being dragged
+  
+  // --- NEW Indicator Logic using onDragOver for stability ---
+  
+  // Handles continuous drag over for items
+  const onDragOverItem = useCallback((e, item, rowKey, colKey) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Only update indicator if we are dragging an item or a new item
     if ((dragInfo.type !== "item" && dragInfo.type !== "newItem") || dragInfo.item?.id === item.id) return;
+    
     const rect = e.currentTarget.getBoundingClientRect();
     const y = e.clientY - rect.top;
     const position = y < rect.height / 2 ? "before" : "after";
-    setItemDropIndicator({ show: true, position, itemId: item.id });
-  };
-  
-  const onDragEnterColumn = (e, rowKey, colKey) => {
+
+    // Only set state if it actually changes to prevent unnecessary re-renders (flicker)
+    setItemDropIndicator(prev => {
+        if (prev.show && prev.itemId === item.id && prev.position === position) {
+            return prev;
+        }
+        return { show: true, position, itemId: item.id };
+    });
+  }, [dragInfo]);
+
+  // Handles continuous drag over for columns
+  const onDragOverColumn = useCallback((e, rowKey, colKey) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Only update indicator if we are dragging a column or a new column
     if (dragInfo.type !== "column" && dragInfo.type !== "newColumn") return;
+    
+    // Skip if we are dragging the column over itself and it's an existing column
+    if (dragInfo.type === "column" && dragInfo.column === colKey && dragInfo.row === rowKey) return;
+
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const position = x < rect.width / 2 ? "before" : "after";
-    setColumnDropIndicator({ show: true, position, columnKey: colKey, rowKey: rowKey });
-  };
+    
+    // Only set state if it actually changes to prevent unnecessary re-renders (flicker)
+    setColumnDropIndicator(prev => {
+        if (prev.show && prev.columnKey === colKey && prev.rowKey === rowKey && prev.position === position) {
+            return prev;
+        }
+        return { show: true, position, columnKey: colKey, rowKey: rowKey };
+    });
+  }, [dragInfo]);
 
-  const onDragLeaveColumn = () => {
-    setColumnDropIndicator({ show: false, position: "before", columnKey: null, rowKey: null });
-  };
 
+  // --- Drag Enter/Leave for Rows (Kept as vertical space is large) ---
+  
   const onDragEnterRow = (e, rowKey) => {
+    // We only care about rows or new rows being dragged
     if ((dragInfo.type !== "row" && dragInfo.type !== "newRow") || dragInfo.row === rowKey) return;
+    
     const rect = e.currentTarget.getBoundingClientRect();
     const y = e.clientY - rect.top;
     const position = y < rect.height / 2 ? "before" : "after";
@@ -206,6 +243,8 @@ const CustomNestedDnD = () => {
   };
 
   const onDragLeaveRow = () => {
+    // Only clear if the cursor is truly leaving the row area
+    // For simplicity with row DND, we clear the indicator entirely when leaving the boundary
     setRowDropIndicator({ show: false, position: "before", rowKey: null });
   };
 
@@ -219,7 +258,7 @@ const CustomNestedDnD = () => {
     // Only handle newRow drop if it hits the main container (dropped at the end)
     if (dragInfo.type === "newRow") {
         const newData = JSON.parse(JSON.stringify(data));
-        const newRowKey = getNewRowKey(data);
+        const newRowKey = getNewUniqueKey(data, 'row');
         newData[newRowKey] = { column1: [] };
         setData(newData);
         
@@ -233,7 +272,7 @@ const CustomNestedDnD = () => {
     resetDragState();
   };
 
-  // 💡 OPTIMIZED: Handles reordering existing rows AND inserting new rows.
+  // Handles reordering existing rows AND inserting new rows. (Unchanged)
   const onDropOnRow = (e, targetRowKey) => {
     e.preventDefault();
     e.stopPropagation();
@@ -242,7 +281,6 @@ const CustomNestedDnD = () => {
     const entries = Object.entries(newData);
     const targetIndex = entries.findIndex(([key]) => key === targetRowKey);
     
-    // Determine insertion point based on indicator position
     let insertIndex = targetIndex;
     if (rowDropIndicator.show && rowDropIndicator.position === "after") {
         insertIndex = targetIndex + 1;
@@ -254,20 +292,23 @@ const CustomNestedDnD = () => {
         
         if (sourceIndex > -1 && targetIndex > -1) {
             
-            // Adjust index for comparison because the array hasn't been spliced yet
             const adjustedInsertIndex = insertIndex > sourceIndex ? insertIndex - 1 : insertIndex;
             const isDroppingOnSelf = adjustedInsertIndex === sourceIndex;
             
             if (!isDroppingOnSelf) {
               const [sourceRow] = entries.splice(sourceIndex, 1);
-              // Also move the corresponding height entry
-              const heightsEntries = Object.entries(columnHeights);
-              const sourceHeightIndex = heightsEntries.findIndex(([key]) => key === dragInfo.row);
-              if (sourceHeightIndex > -1) {
-                  const [sourceHeight] = heightsEntries.splice(sourceHeightIndex, 1);
-                  heightsEntries.splice(adjustedInsertIndex, 0, sourceHeight);
-                  setColumnHeights(Object.fromEntries(heightsEntries));
-              }
+              
+              // Move the corresponding height entry using the same adjusted index
+              setColumnHeights(prevHeights => {
+                  const heightsEntries = Object.entries(prevHeights);
+                  const sourceHeightIndex = heightsEntries.findIndex(([key]) => key === dragInfo.row);
+                  if (sourceHeightIndex > -1) {
+                      const [sourceHeight] = heightsEntries.splice(sourceHeightIndex, 1);
+                      heightsEntries.splice(adjustedInsertIndex, 0, sourceHeight);
+                      return Object.fromEntries(heightsEntries);
+                  }
+                  return prevHeights;
+              });
               
               entries.splice(adjustedInsertIndex, 0, sourceRow);
               setData(Object.fromEntries(entries));
@@ -276,54 +317,76 @@ const CustomNestedDnD = () => {
     } 
     // 2. Inserting a NEW row
     else if (dragInfo.type === "newRow") {
-        const newRowKey = getNewRowKey(data);
+        const newRowKey = getNewUniqueKey(data, 'row');
         const newRowEntry = [newRowKey, { column1: [] }];
         
-        // Insert the new row at the calculated index matching the visual indicator
         entries.splice(insertIndex, 0, newRowEntry); 
         setData(Object.fromEntries(entries));
         
         // Insert new height entry
-        const heightsEntries = Object.entries(columnHeights);
-        heightsEntries.splice(insertIndex, 0, [newRowKey, { column1: MIN_COLUMN_HEIGHT }]);
-        setColumnHeights(Object.fromEntries(heightsEntries));
+        setColumnHeights(prevHeights => {
+            const heightsEntries = Object.entries(prevHeights);
+            heightsEntries.splice(insertIndex, 0, [newRowKey, { column1: MIN_COLUMN_HEIGHT }]);
+            return Object.fromEntries(heightsEntries);
+        });
     }
     
     resetDragState();
   };
 
 
-  // 💡 OPTIMIZED: Handles dropping items/columns, including generating unique labels for new items.
   const onDropColumn = (e, targetRowKey, targetColumnKey) => {
     e.preventDefault();
     e.stopPropagation();
     if (!dragInfo.type) return;
 
     const newData = JSON.parse(JSON.stringify(data));
+    const isIndicatorActive = columnDropIndicator.show && columnDropIndicator.rowKey === targetRowKey && columnDropIndicator.columnKey === targetColumnKey;
 
-    // 1. New Column from Sidebar
+    // --- 1. New Column from Sidebar ---
     if (dragInfo.type === "newColumn") {
-      const colName = `column${Object.keys(newData[targetRowKey]).length + 1}`;
-      if (newData[targetRowKey] && !newData[targetRowKey][colName]) {
-        newData[targetRowKey][colName] = [];
+      
+      const colName = getNewUniqueKey(newData[targetRowKey] || {}, 'column');
+      const newColumnEntry = [colName, []];
+      
+      const targetColumns = newData[targetRowKey] || {};
+      let entries = Object.entries(targetColumns);
+      let insertIndex = entries.length; // Default to appending
+      
+      // Determine insert index based on the active indicator
+      if (isIndicatorActive && targetColumnKey) {
+        const targetIndex = entries.findIndex(([key]) => key === targetColumnKey);
         
-        // Initialize height for the new column
-        setColumnHeights(prevHeights => ({
-            ...prevHeights,
-            [targetRowKey]: {
-                ...prevHeights[targetRowKey],
-                [colName]: MIN_COLUMN_HEIGHT,
-            }
-        }));
+        if (targetIndex !== -1) {
+            insertIndex = columnDropIndicator.position === "before" ? targetIndex : targetIndex + 1;
+        }
       }
-      setCounters((prev) => ({ ...prev, columns: prev.columns + 1 }));
+      
+      // Insert the new column data
+      entries.splice(insertIndex, 0, newColumnEntry); 
+      newData[targetRowKey] = Object.fromEntries(entries);
+        
+      // Initialize height for the new column, preserving order
+      setColumnHeights(prevHeights => {
+          const newHeights = JSON.parse(JSON.stringify(prevHeights)); 
+          const heightsEntries = Object.entries(newHeights[targetRowKey] || {});
+          
+          heightsEntries.splice(insertIndex, 0, [colName, MIN_COLUMN_HEIGHT]);
+          
+          return {
+              ...newHeights,
+              [targetRowKey]: Object.fromEntries(heightsEntries),
+          };
+      });
     }
 
-    // 2. New Item from Sidebar (with unique name generation)
+    // --- 2. New Item from Sidebar (with unique name generation) ---
     else if (dragInfo.type === "newItem") {
       if (newData[targetRowKey] && newData[targetRowKey][targetColumnKey]) {
         
-        const newCounter = counters.items + 1;
+        const newCounter = itemCounter + 1;
+        setItemCounter(newCounter);
+
         let baseLabel = dragInfo.item.label;
         if (baseLabel.includes("Field")) baseLabel = "Input Field";
         
@@ -342,12 +405,10 @@ const CustomNestedDnD = () => {
         } else {
             targetItems.push(newItem);
         }
-        
-        setCounters((prev) => ({ ...prev, items: newCounter }));
       }
     }
 
-    // 3. Reorder / Move Existing Item
+    // --- 3. Reorder / Move Existing Item ---
     else if (dragInfo.type === "item" && dragInfo.row && dragInfo.column && dragInfo.item) {
       const sourceItems = newData[dragInfo.row][dragInfo.column];
       const itemIndex = sourceItems.findIndex((i) => i.id === dragInfo.item.id);
@@ -369,46 +430,82 @@ const CustomNestedDnD = () => {
       }
     }
 
-    // 4. Move/Reorder Column
+    // --- 4. Move/Reorder Existing Column ---
     else if (dragInfo.type === "column" && dragInfo.row && dragInfo.column) {
-      const columns = newData[dragInfo.row];
-      const entries = Object.entries(columns);
       const sourceColumnKey = dragInfo.column;
       const targetColumnKeyToMoveBefore = columnDropIndicator.columnKey;
 
       if (dragInfo.row === targetRowKey) {
-        // Reordering within the same row
-        if (columnDropIndicator.show && columnDropIndicator.columnKey) {
-          const sourceIndex = entries.findIndex(([key]) => key === sourceColumnKey);
-          const targetIndex = entries.findIndex(([key]) => key === targetColumnKeyToMoveBefore);
+        // --- Reordering within the same row ---
+        
+        // Ensure a target indicator is active 
+        if (isIndicatorActive && targetColumnKeyToMoveBefore) {
+            let columnsData = newData[targetRowKey];
+            let entries = Object.entries(columnsData);
 
-          let insertIndex = targetIndex;
-          if (columnDropIndicator.position === "after") {
-              insertIndex = targetIndex + 1;
-          }
-          
-          if (sourceIndex > -1 && targetIndex > -1) {
-              const adjustedInsertIndex = insertIndex > sourceIndex ? insertIndex - 1 : insertIndex;
-              const isDroppingOnSelf = adjustedInsertIndex === sourceIndex;
-              
-              if (!isDroppingOnSelf) {
-                  const [sourceColumn] = entries.splice(sourceIndex, 1);
-                  entries.splice(adjustedInsertIndex, 0, sourceColumn); 
-                  newData[targetRowKey] = Object.fromEntries(entries);
-              }
-          }
+            const sourceIndex = entries.findIndex(([key]) => key === sourceColumnKey);
+            const targetIndex = entries.findIndex(([key]) => key === targetColumnKeyToMoveBefore);
+
+            if (sourceIndex > -1 && targetIndex > -1) {
+                let insertIndex = targetIndex;
+                // Adjust insert position based on indicator
+                if (columnDropIndicator.position === "after") {
+                    insertIndex = targetIndex + 1;
+                }
+
+                // 1. Remove the source column entry
+                const [sourceColumnEntry] = entries.splice(sourceIndex, 1);
+                
+                // Calculate the final insertion index *after* removal
+                const finalInsertIndex = insertIndex > sourceIndex ? insertIndex - 1 : insertIndex;
+                
+                // Only proceed if the column is moving to a new spot
+                if (finalInsertIndex !== sourceIndex) { 
+                    // 2. Insert the source column at the new position
+                    entries.splice(finalInsertIndex, 0, sourceColumnEntry);
+                    newData[targetRowKey] = Object.fromEntries(entries);
+
+                    // 3. Synchronize columnHeights state using the exact same logic
+                    setColumnHeights(prevHeights => {
+                        const newHeights = JSON.parse(JSON.stringify(prevHeights));
+                        const heightsEntries = Object.entries(newHeights[targetRowKey]);
+                        const sourceHeightIndex = heightsEntries.findIndex(([key]) => key === sourceColumnKey);
+
+                        if (sourceHeightIndex > -1) {
+                            const [sourceHeightEntry] = heightsEntries.splice(sourceHeightIndex, 1);
+                            heightsEntries.splice(finalInsertIndex, 0, sourceHeightEntry);
+                            newHeights[targetRowKey] = Object.fromEntries(heightsEntries);
+                        }
+                        return newHeights;
+                    });
+                }
+            }
         }
       } else {
-        // Moving to a different row (Not yet fully supported in this simple logic, but handles deletion from source)
+        // --- Moving to a different row ---
+        // 1. Get the column data and height
         const columnToMove = newData[dragInfo.row][dragInfo.column];
-        delete newData[dragInfo.row][dragInfo.column];
-        newData[targetRowKey][dragInfo.column] = columnToMove;
+        const heightToMove = columnHeights[dragInfo.row][dragInfo.column];
         
-        // Also move column height
+        // 2. Delete data from source
+        delete newData[dragInfo.row][dragInfo.column];
+        
+        // 3. Insert data into target (at the end for now, if no indicator used)
+        // NOTE: Full insertion logic here would require the columnDropIndicator to be active on the target column, 
+        // which isn't currently supported for cross-row moves, so we append.
+        newData[targetRowKey] = {
+            ...newData[targetRowKey],
+            [dragInfo.column]: columnToMove 
+        };
+        
+        // 4. Update heights state
         setColumnHeights(prevHeights => {
             const newHeights = JSON.parse(JSON.stringify(prevHeights));
-            const heightToMove = newHeights[dragInfo.row][dragInfo.column];
+            
+            // Delete height from source
             delete newHeights[dragInfo.row][dragInfo.column];
+            
+            // Add height to target
             newHeights[targetRowKey] = {
                 ...newHeights[targetRowKey],
                 [dragInfo.column]: heightToMove
@@ -422,7 +519,7 @@ const CustomNestedDnD = () => {
     resetDragState();
   };
 
-  // --- Trash Handler ---
+  // --- Trash Handler (Unchanged) ---
   const onDropToTrash = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -543,7 +640,7 @@ const CustomNestedDnD = () => {
                     className="p-2 cursor-grab bg-blue-200 rounded-md hover:bg-blue-300 transition text-blue-700"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                  </button>
+                    </button>
                 </div>
                 
                 {/* Columns Container */}
@@ -559,9 +656,9 @@ const CustomNestedDnD = () => {
                         )}
 
                       <div
-                        onDragOver={onDragOver}
-                        onDragEnter={(e) => onDragEnterColumn(e, rowKey, colKey)}
-                        onDragLeave={onDragLeaveColumn}
+                        onDragOver={(e) => onDragOverColumn(e, rowKey, colKey)}
+                        // onDragEnter={(e) => onDragEnterColumn(e, rowKey, colKey)} <-- REMOVED
+                        // onDragLeave={onDragLeaveColumn} <-- REMOVED
                         onDrop={(e) => onDropColumn(e, rowKey, colKey)}
                         // Column styles
                         className={`flex-1 border-2 border-dashed p-3 bg-white rounded-lg transition relative flex flex-col
@@ -594,8 +691,8 @@ const CustomNestedDnD = () => {
                                   <div className="h-1.5 bg-purple-500 mb-1 rounded-sm animate-pulse"></div>
                                 )}
                               <div
-                                onDragEnter={(e) => onDragEnterItem(e, item)}
-                                onDragOver={onDragOver}
+                                // onDragEnter={(e) => onDragEnterItem(e, item)} <-- REMOVED
+                                onDragOver={(e) => onDragOverItem(e, item, rowKey, colKey)}
                                 // Increased item padding p-2 and slightly wider gap
                                 className={`p-2 border border-gray-400 bg-white rounded-md transition-all shadow-sm flex items-start gap-2
                                     hover:shadow-md duration-100 ease-out
@@ -625,13 +722,15 @@ const CustomNestedDnD = () => {
                           ))}
                         </div>
                         
-                        {/* Vertical Resize Handle */}
+                        {/* Vertical Resize Handle (Updated: Minimal and smooth) */}
                         <div
                             onMouseDown={(e) => startResizing(e, rowKey, colKey)}
-                            // Small, clear handle at the bottom
-                            className="absolute bottom-0 left-0 right-0 h-2 bg-gray-400 hover:bg-blue-600 cursor-ns-resize rounded-b-lg transition duration-150 flex items-center justify-center group-hover:h-3"
+                            title="Resize Column Vertically"
+                            // Base style: h-0.5 (2px). Hover style: h-1 (4px).
+                            className={`absolute bottom-0 left-0 right-0 h-0.5 bg-gray-300 border-t border-gray-200 
+                                        hover:h-1 hover:bg-blue-500 cursor-ns-resize rounded-b-lg transition-all 
+                                        duration-150 ease-in-out ${isResizing ? 'bg-blue-600 h-1 shadow-md' : 'shadow-sm'}`}
                         >
-                            <div className="w-8 h-0.5 bg-white rounded-full"></div>
                         </div>
                       </div>
                       
