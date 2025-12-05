@@ -1114,11 +1114,11 @@ const CustomNestedDnD = () => {
                         <div
                           onMouseDown={(e) => startResizing(e, rowKey, colKey)}
                           title="Resize Column Vertically"
-                          className={`absolute bottom-0 left-0 right-0 h-0.5 bg-gray-300 border-t border-gray-200 
-                                        hover:h-1 hover:bg-blue-500 cursor-ns-resize rounded-b-lg transition-all 
+                          className={`absolute bottom-0 left-0 right-0 h-[5px] bg-gray-300 border-t border-gray-200 
+                                        hover:h-[5px] hover:bg-blue-500 cursor-ns-resize rounded-b-lg transition-all 
                                         duration-150 ease-in-out ${
                                           isResizing
-                                            ? "bg-blue-600 h-1 shadow-md"
+                                            ? "bg-blue-600 h-[5px] shadow-md"
                                             : "shadow-sm"
                                         }`}
                         ></div>
